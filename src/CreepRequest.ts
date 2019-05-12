@@ -1,9 +1,18 @@
 export enum RequestPriority
 {
-  Emergency,
-  Routine,
-  Discretionary,
-  Deferral,
+  Emergency = 3,
+  Routine = 2,
+  Discretionary = 1,
+  Deferral = 0,
+}
+
+export enum RequestStatus
+{
+  Unacknowledged,
+  Queued,
+  Processing,
+  Complete,
+  Failed,
 }
 
 export class CreepRequest
@@ -13,14 +22,21 @@ export class CreepRequest
   readonly Priority:RequestPriority;
   readonly Role:string;
 
+  // If the creepId is populated, the request has
+  // been fulfilled.
+  Status:RequestStatus;
+  creepName:string;
+  actualBodyParts:string[];
+
   constructor (requiredBodyParts:string[],
                optionalBodyParts:string[],
                priority:RequestPriority,
                role:string)
   {
     this.RequiredBodyParts = requiredBodyParts;
-    this.RequiredBodyParts = optionalBodyParts;
+    this.OptionalBodyParts = optionalBodyParts;
     this.Priority = priority;
     this.Role = role;
+    this.Status = RequestStatus.Unacknowledged;
   }
 }

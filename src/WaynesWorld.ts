@@ -1,23 +1,27 @@
+//import { OverseerRon } from "Managers/OverseerRon";
 import { BloomingBetty } from "Managers/BloomingBetty";
-import { OverseerRon } from "Managers/OverseerRon";
+import { SourceMgr } from "Managers/SourceMgr";
 
-export namespace WaynesWorld {
-
+export namespace WaynesWorld
+{
+  //ar overseerRon:OverseerRon = new OverseerRon();
   var bloomingBetty:BloomingBetty = new BloomingBetty();
-  var overseerRon:OverseerRon = new OverseerRon();
+  var sourceManager:SourceMgr = new SourceMgr();
 
   // Screeps gameplay loop entry point
-  export function WaynesPowerMinute() {
-
-    GetOwnedRooms().forEach(function(room) {
-
+  export function WaynesPowerMinute()
+  {
+    GetOwnedRooms().forEach(function(room)
+    {
         //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
         var sources:Source[] = room.find(FIND_SOURCES)
+        var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
         //var structures:Structure[] = room.find(FIND_STRUCTURES);
-        //var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
 
-        overseerRon.somehowIManage(room, sources);
-        bloomingBetty.somehowIManage(room);// sources, spawns, structures);
+
+        sourceManager.somehowIManage(room, sources);
+        bloomingBetty.somehowIManage(room, spawns);// sources, spawns, structures);
+        //overseerRon.somehowIManage(room, sources);
     });
   }
 

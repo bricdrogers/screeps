@@ -1,4 +1,7 @@
 import { SourceInfoData } from "SourceInfoData";
+import { CreepRequest, RequestStatus } from "CreepRequest";
+import { RequestPriority } from "CreepRequest";
+import { BloomingBetty } from "Managers/BloomingBetty";
 
 export class SourceMgr
 {
@@ -11,14 +14,46 @@ export class SourceMgr
 
     for (let source of sources)
     {
-        // We need to ensure the each source has max work parts
         var sourceInfo:SourceInfoData = this.getSourceInfo(room, source);
 
-        // How to remove dead harvesters?
-        if(sourceInfo.workParts < this._maxWorkParts)
+        if(sourceInfo.Request != null)
         {
-          console.log("Source:", source.id, "requests harvester");
+          console.log("Getting herE?", sourceInfo.Request.Status);
+            if(sourceInfo.Request.Status == RequestStatus.Complete)
+            {
+              console.log(sourceInfo.Request.actualBodyParts);
+              for(let bodyPart of sourceInfo.Request.actualBodyParts)
+              {
+                console.log(bodyPart);
+                if(bodyPart == MOVE)
+                {
+                  console.log("Adding Move");
+                  ++sourceInfo.WorkParts;
+                }
+              }
+
+              sourceInfo.Harvesters.push(sourceInfo.Request.creepName);
+              sourceInfo.Request = null;
+            }
+            else if(sourceInfo.Request.Status == RequestStatus.Failed)
+            {
+              sourceInfo.Request = null;
+            }
+
+            continue;
         }
+
+        if(sourceInfo.WorkParts < this._maxWorkParts)
+        {
+          var request:CreepRequest = new CreepRequest([WORK, MOVE],
+                                                      [WORK, WORK, WORK, WORK, CARRY],
+                                                      RequestPriority.Routine,
+                                                      "harvester");
+          BloomingBetty.AddCreepRequest(request);
+          sourceInfo.Request = request;
+        }
+
+        // TODO: How to remove dead harvesters?
     }
   }
 
@@ -34,8 +69,8 @@ export class SourceMgr
      if(sourceInfo == null)
      {
          sourceInfo = new SourceInfoData();
-         sourceInfo.workParts = 0;
-         sourceInfo.harvesters = [];
+         sourceInfo.WorkParts = 0;
+         sourceInfo.Harvesters = [];
          room.memory.sourceInfo[source.id] = sourceInfo;
      }
 
