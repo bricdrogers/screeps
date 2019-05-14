@@ -21,6 +21,7 @@ export class CreepRequest
   readonly OptionalBodyParts:string[];
   readonly Priority:RequestPriority;
   readonly Role:string;
+  readonly Id:string;
 
   // If the creepId is populated, the request has
   // been fulfilled.
@@ -38,5 +39,6 @@ export class CreepRequest
     this.Priority = priority;
     this.Role = role;
     this.Status = RequestStatus.Unacknowledged;
+    this.Id = Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
   }
 }

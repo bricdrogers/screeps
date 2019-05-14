@@ -13,15 +13,22 @@ export namespace WaynesWorld
   {
     GetOwnedRooms().forEach(function(room)
     {
-        //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-        var sources:Source[] = room.find(FIND_SOURCES)
-        var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
-        //var structures:Structure[] = room.find(FIND_STRUCTURES);
+      if(room.memory.isInitialzed == null)
+      {
+        bloomingBetty.initialize(room);
+
+        room.memory.isInitialzed = true;
+      }
+
+      //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+      var sources:Source[] = room.find(FIND_SOURCES)
+      var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
+      //var structures:Structure[] = room.find(FIND_STRUCTURES);
 
 
-        sourceManager.somehowIManage(room, sources);
-        bloomingBetty.somehowIManage(room, spawns);// sources, spawns, structures);
-        //overseerRon.somehowIManage(room, sources);
+      sourceManager.somehowIManage(room, sources);
+      bloomingBetty.somehowIManage(room, spawns);// sources, spawns, structures);
+      //overseerRon.somehowIManage(room, sources);
     });
   }
 

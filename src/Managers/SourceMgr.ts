@@ -16,41 +16,45 @@ export class SourceMgr
     {
         var sourceInfo:SourceInfoData = this.getSourceInfo(room, source);
 
-        if(sourceInfo.Request != null)
+        console.log("request id", sourceInfo.RequestId,  sourceInfo.RequestId != null);
+        if(sourceInfo.RequestId != null)
         {
-          console.log("Getting herE?", sourceInfo.Request.Status);
-            if(sourceInfo.Request.Status == RequestStatus.Complete)
+          var request:CreepRequest = BloomingBetty.FindCreepRequest(room, sourceInfo.RequestId);
+
+          console.log("Request status:", request.Status, request.Role);
+          if(request.Status == RequestStatus.Complete)
+          {
+            console.log(request.actualBodyParts);
+            for(let bodyPart of request.actualBodyParts)
             {
-              console.log(sourceInfo.Request.actualBodyParts);
-              for(let bodyPart of sourceInfo.Request.actualBodyParts)
+              if(bodyPart == WORK)
               {
-                console.log(bodyPart);
-                if(bodyPart == MOVE)
-                {
-                  console.log("Adding Move");
-                  ++sourceInfo.WorkParts;
-                }
+                ++sourceInfo.WorkParts;
               }
-
-              sourceInfo.Harvesters.push(sourceInfo.Request.creepName);
-              sourceInfo.Request = null;
-            }
-            else if(sourceInfo.Request.Status == RequestStatus.Failed)
-            {
-              sourceInfo.Request = null;
             }
 
-            continue;
+            sourceInfo.Harvesters.push(request.creepName);
+            BloomingBetty.RemoveCreepRequest(room, sourceInfo.RequestId);
+            sourceInfo.RequestId = null;
+          }
+          else if(request.Status == RequestStatus.Failed)
+          {
+            BloomingBetty.RemoveCreepRequest(room, sourceInfo.RequestId);
+            sourceInfo.RequestId = null;
+          }
+
+          continue;
         }
 
         if(sourceInfo.WorkParts < this._maxWorkParts)
         {
+          console.log("SrcMgr: Adding Creep REquest");
           var request:CreepRequest = new CreepRequest([WORK, MOVE],
                                                       [WORK, WORK, WORK, WORK, CARRY],
                                                       RequestPriority.Routine,
-                                                      "harvester");
-          BloomingBetty.AddCreepRequest(request);
-          sourceInfo.Request = request;
+                                                      "harvester" + Game.time);
+          BloomingBetty.AddCreepRequest(room, request);
+          sourceInfo.RequestId = request.Id;
         }
 
         // TODO: How to remove dead harvesters?
