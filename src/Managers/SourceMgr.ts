@@ -29,17 +29,18 @@ export class SourceMgr
             continue;
           }
 
-          console.log("Request status:", request.Status, request.Role);
+          // If the request is complete, we can release the requestId and add the
+          // assigned body parts
           if(request.Status == RequestStatus.Complete)
           {
-            console.log(request.actualBodyParts);
-            for(let bodyPart of request.actualBodyParts)
-            {
-              if(bodyPart == WORK)
-              {
-                ++sourceInfo.WorkParts;
-              }
-            }
+            sourceInfo.WorkParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
+            // for(let bodyPart of request.actualBodyParts)
+            // {
+            //   if(bodyPart == WORK)
+            //   {
+            //     ++sourceInfo.WorkParts;
+            //   }
+            // }
 
             sourceInfo.Harvesters.push(request.creepName);
             CreepSpawnQueue.RemoveCreepRequest(room, sourceInfo.RequestId);
@@ -56,7 +57,6 @@ export class SourceMgr
 
         if(sourceInfo.WorkParts < this._maxWorkParts)
         {
-          console.log("SrcMgr: Adding Creep REquest");
           var request:CreepRequest = new CreepRequest([WORK, MOVE],
                                                       [WORK, WORK, WORK, WORK, CARRY],
                                                       RequestPriority.Routine,
