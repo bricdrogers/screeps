@@ -1,10 +1,13 @@
 //import { OverseerRon } from "Managers/OverseerRon";
 import { BloomingBetty } from "Managers/BloomingBetty";
 import { SourceMgr } from "Managers/SourceMgr";
+import { CreepSpawnQueue } from "Managers/CreepSpawnQueue"
+import { Globals } from "Globals";
+
 
 export namespace WaynesWorld
 {
-  //ar overseerRon:OverseerRon = new OverseerRon();
+    //ar overseerRon:OverseerRon = new OverseerRon();
   var bloomingBetty:BloomingBetty = new BloomingBetty();
   var sourceManager:SourceMgr = new SourceMgr();
 
@@ -13,11 +16,10 @@ export namespace WaynesWorld
   {
     GetOwnedRooms().forEach(function(room)
     {
-      if(room.memory.isInitialzed == null)
+      if(_.isUndefined(Globals.isInitialzed))
       {
-        bloomingBetty.initialize(room);
-
-        room.memory.isInitialzed = true;
+        console.log("Initializing Managers.");
+        CreepSpawnQueue.Initialize(room);
       }
 
       //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
@@ -25,11 +27,17 @@ export namespace WaynesWorld
       var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
       //var structures:Structure[] = room.find(FIND_STRUCTURES);
 
-
-      sourceManager.somehowIManage(room, sources);
+      // Update Managers
       bloomingBetty.somehowIManage(room, spawns);// sources, spawns, structures);
+
+      // Update Entities
+      sourceManager.somehowIManage(room, sources);
+
       //overseerRon.somehowIManage(room, sources);
     });
+
+
+    Globals.isInitialzed = true;
   }
 
   // Get a list of all rooms that have a spawn that we control

@@ -1,49 +1,16 @@
 import { CreepRequest, RequestStatus } from "CreepRequest";
+import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { PriorityQueue } from "Utils/PriorityQueue"
 
 export class BloomingBetty
 {
-  // a dictionary of roomname and a tuple which contains the creep request map lookup and the priority queue
-  private static readonly _queueLookup:{ [roomName:string]: [{[id: string]: CreepRequest;}, PriorityQueue<CreepRequest>] } = { };
-
-  public static AddCreepRequest(room:Room, request:CreepRequest)
-  {
-    console.log("New Creep Request: ", request.Role);
-
-    var queueData = BloomingBetty._queueLookup[room.name];
-    queueData[0][request.Id] = request;
-    queueData[1].queue(request);
-    request.Status = RequestStatus.Queued;
-  }
-
-  public static FindCreepRequest(room:Room, id:string)
-  {
-    var queueData = BloomingBetty._queueLookup[room.name];
-    return queueData[0][id];
-  }
-
-  public static RemoveCreepRequest(room:Room, id:string)
-  {
-    var queueData = BloomingBetty._queueLookup[room.name];
-    delete queueData[0][id];
-  }
-
   private readonly _updateTickRate:number = 1;
-
-  initialize(room:Room)
-  {
-    console.log("initiaze)");
-    var queueLookup: [{[id: string]: CreepRequest;}, PriorityQueue<CreepRequest>] = [{}, new PriorityQueue<CreepRequest>({ comparator: function(a, b) { return b.Priority - a.Priority; }})];
-    BloomingBetty._queueLookup[room.name] = queueLookup;
-  }
 
   somehowIManage(room:Room, spawns:Spawn[]) //, sources:Source[], structures:Structure[]) {
   {
     if(!this.checkCanUpdate(room)) return;
 
-    var queueData = BloomingBetty._queueLookup[room.name];
-    var queue = queueData[1];
-
+    var queue:PriorityQueue<CreepRequest> = CreepSpawnQueue.GetPriorityQueue(room);
     if(queue.length > 0)
     {
       var request:CreepRequest = queue.peek();
@@ -72,7 +39,6 @@ export class BloomingBetty
 
         request.creepName = name;
         request.Status = RequestStatus.Complete;
-        console.log("Betty spawning ", name, " from request: ", request.Role);
       }
     }
   }

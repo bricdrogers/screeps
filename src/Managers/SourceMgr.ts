@@ -1,7 +1,7 @@
 import { SourceInfoData } from "SourceInfoData";
-import { CreepRequest, RequestStatus } from "CreepRequest";
-import { RequestPriority } from "CreepRequest";
+import { CreepRequest, RequestStatus, RequestPriority } from "CreepRequest";
 import { BloomingBetty } from "Managers/BloomingBetty";
+import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 
 export class SourceMgr
 {
@@ -16,10 +16,18 @@ export class SourceMgr
     {
         var sourceInfo:SourceInfoData = this.getSourceInfo(room, source);
 
-        console.log("request id", sourceInfo.RequestId,  sourceInfo.RequestId != null);
+        // If the source has a requestId, we need to wait for it to be complete.
         if(sourceInfo.RequestId != null)
         {
-          var request:CreepRequest = BloomingBetty.FindCreepRequest(room, sourceInfo.RequestId);
+          var request:CreepRequest = CreepSpawnQueue.FindCreepRequest(room, sourceInfo.RequestId);
+
+          // If the request is undefined, our heap memory has been reset and was reinitialzed.
+          // This source will have to put in a new request.
+          if(_.isUndefined(request))
+          {
+            sourceInfo.RequestId = null;
+            continue;
+          }
 
           console.log("Request status:", request.Status, request.Role);
           if(request.Status == RequestStatus.Complete)
@@ -34,12 +42,12 @@ export class SourceMgr
             }
 
             sourceInfo.Harvesters.push(request.creepName);
-            BloomingBetty.RemoveCreepRequest(room, sourceInfo.RequestId);
+            CreepSpawnQueue.RemoveCreepRequest(room, sourceInfo.RequestId);
             sourceInfo.RequestId = null;
           }
           else if(request.Status == RequestStatus.Failed)
           {
-            BloomingBetty.RemoveCreepRequest(room, sourceInfo.RequestId);
+            CreepSpawnQueue.RemoveCreepRequest(room, sourceInfo.RequestId);
             sourceInfo.RequestId = null;
           }
 
@@ -53,7 +61,7 @@ export class SourceMgr
                                                       [WORK, WORK, WORK, WORK, CARRY],
                                                       RequestPriority.Routine,
                                                       "harvester" + Game.time);
-          BloomingBetty.AddCreepRequest(room, request);
+          CreepSpawnQueue.AddCreepRequest(room, request);
           sourceInfo.RequestId = request.Id;
         }
 
