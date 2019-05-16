@@ -1,6 +1,5 @@
 import { SourceInfoData } from "SourceInfoData";
 import { CreepRequest, RequestStatus, RequestPriority } from "CreepRequest";
-import { BloomingBetty } from "Managers/BloomingBetty";
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 
 export class SourceMgr
@@ -34,15 +33,8 @@ export class SourceMgr
           if(request.Status == RequestStatus.Complete)
           {
             sourceInfo.WorkParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
-            // for(let bodyPart of request.actualBodyParts)
-            // {
-            //   if(bodyPart == WORK)
-            //   {
-            //     ++sourceInfo.WorkParts;
-            //   }
-            // }
-
             sourceInfo.Harvesters.push(request.creepName);
+
             CreepSpawnQueue.RemoveCreepRequest(room, sourceInfo.RequestId);
             sourceInfo.RequestId = null;
           }

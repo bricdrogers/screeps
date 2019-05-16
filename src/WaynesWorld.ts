@@ -1,7 +1,7 @@
 //import { OverseerRon } from "Managers/OverseerRon";
 import { BloomingBetty } from "Managers/BloomingBetty";
 import { SourceMgr } from "Managers/SourceMgr";
-import { CreepSpawnQueue } from "Managers/CreepSpawnQueue"
+import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { Globals } from "Globals";
 
 
