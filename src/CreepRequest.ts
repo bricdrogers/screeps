@@ -1,3 +1,5 @@
+import { EntityType } from "Prototypes/EntityTypes"
+
 export enum RequestPriority
 {
   Emergency = 3,
@@ -22,6 +24,8 @@ export class CreepRequest
   readonly Priority:RequestPriority;
   readonly Role:string;
   readonly Id:string;
+  Owner:[EntityType, string];
+
 
   // If the creepId is populated, the request has
   // been fulfilled.
@@ -32,7 +36,8 @@ export class CreepRequest
   constructor (requiredBodyParts:string[],
                optionalBodyParts:string[],
                priority:RequestPriority,
-               role:string)
+               role:string,
+               owner:[EntityType, string])
   {
     this.RequiredBodyParts = requiredBodyParts;
     this.OptionalBodyParts = optionalBodyParts;
@@ -40,5 +45,6 @@ export class CreepRequest
     this.Role = role;
     this.Status = RequestStatus.Unacknowledged;
     this.Id = Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
+    this.Owner = owner;
   }
 }

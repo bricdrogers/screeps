@@ -1,5 +1,6 @@
 import { CreepRequest, RequestStatus } from "CreepRequest";
 import { PriorityQueue } from "Utils/PriorityQueue"
+import { EntityType } from "Prototypes/EntityTypes"
 
 export class CreepSpawnQueue
 {
@@ -8,7 +9,7 @@ export class CreepSpawnQueue
 
   public static AddCreepRequest(room:Room, request:CreepRequest)
   {
-    console.log("Adding creep request: ", request.Role);
+    console.log(EntityType[request.Owner[0]] + ":", request.Owner[1].toString(), "requesting a creep.");
 
     var queueData = CreepSpawnQueue._queueLookup[room.name];
     queueData[0][request.Id] = request;

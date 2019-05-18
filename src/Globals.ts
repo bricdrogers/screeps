@@ -1,4 +1,9 @@
 export abstract class Globals
 {
-  static isInitialzed:boolean;
+  static roomGlobals: { [id: string]: RoomGlobalData; } = {}
+}
+
+export class RoomGlobalData
+{
+  // TODO
 }
