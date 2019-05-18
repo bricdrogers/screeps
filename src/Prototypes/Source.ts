@@ -99,25 +99,6 @@ export function sourcePrototype()
     }
   });
 
-  // // ***************
-  // // Source.leasedCreeps
-  // // ***************
-  // Object.defineProperty(Source.prototype, 'leasedCreeps',
-  // {
-  //   get:function():string[]
-  //   {
-  //     if(_.isUndefined(this.memory.leasedCreeps))
-  //     {
-  //       this.memory.leasedCreeps = [];
-  //     }
-  //     return this.memory.leasedCreeps;
-  //   },
-  //   set: function(value)
-  //   {
-  //     this.memory.leasedCreeps = value;
-  //   }
-  // });
-
   // ***************
   // Source.releaseCreepLease(Room)
   // ***************
