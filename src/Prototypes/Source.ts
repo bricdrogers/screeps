@@ -163,13 +163,13 @@ export function sourcePrototype()
   // ***************
   // Source.tick(Room)
   // ***************
-  Source.prototype.tick = function(room:Room)
+  Source.prototype.tick = function(room:Room, spawns:Spawn[])
   {
     if(!checkCanUpdate(this)) return;
 
     // Init Memory
     if(_.isUndefined(this.harvestSlots)) initHarvestSlots(this, room);
-    if(_.isUndefined(this.hasContainer)) createContainer(this, room);
+    if(_.isUndefined(this.hasContainer)) createContainer(this, room, spawns);
 
     var requestId:string = this.requestId;
     // If the source has a requestId, we need to wait for it to be complete.
@@ -218,25 +218,32 @@ export function sourcePrototype()
 }
 
 
-function createContainer(source:Source, room:Room)
+function createContainer(source:Source, room:Room, spawns:Spawn[])
 {
-  var slots = source.harvestSlots;
+  // Get the best container position TOOD: FINISH
+  var pathToSource:PathFinderPath = PathFinder.search(spawns[0].pos, {pos: source.pos, range:1});
+  var containerPos:RoomPosition = pathToSource.path[pathToSource.path.length - 1];
 
-  // if the source has more than one slot, we just use one
-  // of the available slots
-  if(slots.length > 1)
+  for(let step123 of pathToSource.path)
   {
-    var slot = slots.pop();
-    room.createConstructionSite(slot.x, slot.y, STRUCTURE_CONTAINER);
+    var visual:RoomVisual = new RoomVisual(room.name);
+    visual.circle(step123.x, step123.y);
   }
-  else(slot.length == 1)
-  {
-    var slot = slots[0];
-    var areaList:LookAtResultWithPos[] = <LookAtResultWithPos[]>room
-              .lookForAtArea(LOOK_TERRAIN, slot.y - 1, slot.x - 1, slot.y + 1, slot.x + 1, true);
-  }
+  // var containerSlot:any = source.harvestSlots.find(function(value:any)
+  //   {
+  //       return (containerPos.x == value.x && containerPos.y == value.y)
+  //   });
 
-  source.hasContainer = true;
+  // if(_.isUndefined(containerSlot))
+  // {
+  //   console.log("Failed to create container for source", source.id);
+  //   return;
+  // }
+
+ //containerSlot.hasContainer = true;
+  console.log(room.createConstructionSite(containerPos.x, containerPos.y, STRUCTURE_CONTAINER));
+
+ // source.hasContainer = true;
 }
 
 function initHarvestSlots(source:Source, room:Room)

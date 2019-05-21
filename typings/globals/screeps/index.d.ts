@@ -1975,7 +1975,7 @@ interface Source extends RoomObject {
     harvestSlots:any;
     memory:any;
     hasContainer:boolean;
-    tick(room:Room);
+    tick(room:Room, spawns:Spawn[]);
     releaseCreepLease(creepId:string);
     findHarvestSlot(creepId:string);
 }
