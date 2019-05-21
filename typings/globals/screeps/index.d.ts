@@ -645,7 +645,7 @@ interface Creep extends RoomObject {
     // Prototypes
     bodyParts:string[];
     role:string;
-    tick();
+    tick(sources:Source[]);
 }
 interface CreepConstructor extends _Constructor<Creep>, _ConstructorById<Creep> {
 }
@@ -1926,6 +1926,10 @@ interface Room {
      * @returns An object with all the objects of the given type in the specified area
      */
     lookForAtArea(type: string, top: number, left: number, bottom: number, right: number, asArray?: boolean): LookAtResultMatrix | LookAtResultWithPos[];
+
+    // Prototypes
+    ticksSinceLastUpdate:number;
+    tick(sources:Source[]);
 }
 interface RoomConstructor {
     new (id: string): Room;
@@ -1967,9 +1971,13 @@ interface Source extends RoomObject {
     ticksSinceLastUpdate:number;
     workParts:number;
     requestId:string;
-    //leasedCreeps:string[];
+    energyPerTick:number;
+    harvestSlots:any;
+    memory:any;
+    hasContainer:boolean;
     tick(room:Room);
     releaseCreepLease(creepId:string);
+    findHarvestSlot(creepId:string);
 }
 interface SourceConstructor extends _Constructor<Source>, _ConstructorById<Source> {
 }

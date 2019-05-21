@@ -24,13 +24,14 @@ export class CreepRequest
   readonly Priority:RequestPriority;
   readonly Role:string;
   readonly Id:string;
+  readonly creepName:string;
   Owner:[EntityType, string];
 
 
   // If the creepId is populated, the request has
   // been fulfilled.
   Status:RequestStatus;
-  creepName:string;
+
   actualBodyParts:string[];
 
   constructor (requiredBodyParts:string[],
@@ -44,7 +45,8 @@ export class CreepRequest
     this.Priority = priority;
     this.Role = role;
     this.Status = RequestStatus.Unacknowledged;
-    this.Id = Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
     this.Owner = owner;
+    this.Id = Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
+    this.creepName = role + Game.time;
   }
 }

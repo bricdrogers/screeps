@@ -31,8 +31,7 @@ export class BloomingBetty
       }
 
       var spawn:Spawn = spawns[0]; // TODO: multiple spawns per room?
-      var name:string = request.Role + Game.time;
-      if(spawn.spawnCreep(request.actualBodyParts, name, { dryRun: true }) == OK)
+      if(spawn.spawnCreep(request.actualBodyParts, request.creepName, { dryRun: true }) == OK)
       {
         let creepMemory =
         {
@@ -41,10 +40,9 @@ export class BloomingBetty
           bodyParts: request.actualBodyParts,
         }
 
-        spawn.spawnCreep(request.actualBodyParts, name, { memory: creepMemory });
+        spawn.spawnCreep(request.actualBodyParts, request.creepName, { memory: creepMemory });
         queue.dequeue();
 
-        request.creepName = name;
         request.Status = RequestStatus.Complete;
       }
     }

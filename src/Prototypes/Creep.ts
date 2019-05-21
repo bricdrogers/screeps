@@ -1,3 +1,6 @@
+import { ROLE_HARVESTER } from "Globals";
+import { harvestTick } from "Creeps/Harvester";
+
 export function creepPrototype()
 {
   // ***************
@@ -18,11 +21,23 @@ export function creepPrototype()
     set: function(value) { Memory.creeps[this.name].bodyParts = value; }
   });
 
-    // ***************
-  // Source.tick(Room)
   // ***************
-  Creep.prototype.tick = function()
+  // Creep.tick(Source[])
+  // ***************
+  Creep.prototype.tick = function(sources:Source[])
   {
-    console.log("Creep tick");
+    switch(this.role)
+    {
+      case ROLE_HARVESTER:
+      {
+        harvestTick(this, sources);
+        break;
+      }
+      default:
+      {
+        console.log("Unknown creep role for", this.name + ".", "Cannot Update.");
+        break;
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { CreepRequest, RequestStatus, RequestPriority } from "CreepRequest";
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { EntityType } from "./EntityTypes";
+import { ROLE_HARVESTER } from "Globals";
 
 const _updateTickRate:number = 5;
 const _maxWorkParts:number = 5;
@@ -100,12 +101,63 @@ export function sourcePrototype()
   });
 
   // ***************
+  // Source.energyPerTick
+  // ***************
+  Object.defineProperty(Source.prototype, 'energyPerTick',
+  {
+    get:function():number
+    {
+      return Math.max(this.workParts * 2, this.energyCapacity);
+    }
+  });
+
+  // ***************
+  // Source.harvestSlots
+  // ***************
+  Object.defineProperty(Source.prototype, 'harvestSlots',
+  {
+    get:function():any
+    {
+      return this.memory.harvestSlots;
+    },
+    set: function(value)
+    {
+      this.memory.harvestSlots = value;
+    }
+  });
+
+  // ***************
+  // Source.hasContainer
+  // ***************
+  Object.defineProperty(Source.prototype, 'hasContainer',
+  {
+    get:function():boolean
+    {
+      return this.memory.hasContainer;
+    },
+    set: function(value)
+    {
+      this.memory.hasContainer = value;
+    }
+  });
+
+  // ***************
   // Source.releaseCreepLease(Room)
   // ***************
   Source.prototype.releaseCreepLease = function(creepId:string)
   {
-    var bodyParts:string[] = Memory.creeps[creepId].BodyParts;
+    var bodyParts:string[] = Memory.creeps[creepId].bodyParts;
     this.workParts -= bodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
+    updateCreepInSlot(this, creepId, undefined);
+  }
+
+  // ***************
+  // Source.getHarvestSlot(string)
+  // ***************
+  Source.prototype.findHarvestSlot = function(creepId:string)
+  {
+    if(creepId == undefined) return undefined;
+    return getHarvestSlot(this, creepId);
   }
 
   // ***************
@@ -114,6 +166,10 @@ export function sourcePrototype()
   Source.prototype.tick = function(room:Room)
   {
     if(!checkCanUpdate(this)) return;
+
+    // Init Memory
+    if(_.isUndefined(this.harvestSlots)) initHarvestSlots(this, room);
+    if(_.isUndefined(this.hasContainer)) createContainer(this, room);
 
     var requestId:string = this.requestId;
     // If the source has a requestId, we need to wait for it to be complete.
@@ -134,6 +190,7 @@ export function sourcePrototype()
       if(request.Status == RequestStatus.Complete)
       {
         this.workParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
+        updateCreepInSlot(this, undefined, request.creepName);
 
         CreepSpawnQueue.RemoveCreepRequest(room, requestId);
         this.requestId = null;
@@ -147,19 +204,89 @@ export function sourcePrototype()
       return;
     }
 
-    if(this.workParts < _maxWorkParts)
+    if(!_.isUndefined(getHarvestSlot(this, undefined)) && this.workParts < _maxWorkParts)
     {
       var request:CreepRequest = new CreepRequest([WORK, MOVE, CARRY],
                                                   [WORK, WORK, WORK, WORK],
                                                   RequestPriority.Routine,
-                                                  "harvester",
+                                                  ROLE_HARVESTER,
                                                   [EntityType.Source, this.id]);
       CreepSpawnQueue.AddCreepRequest(room, request);
       this.requestId = request.Id;
     }
-
-    // TODO: How to remove dead harvesters?
   }
+}
+
+
+function createContainer(source:Source, room:Room)
+{
+  var slots = source.harvestSlots;
+
+  // if the source has more than one slot, we just use one
+  // of the available slots
+  if(slots.length > 1)
+  {
+    var slot = slots.pop();
+    room.createConstructionSite(slot.x, slot.y, STRUCTURE_CONTAINER);
+  }
+  else(slot.length == 1)
+  {
+    var slot = slots[0];
+    var areaList:LookAtResultWithPos[] = <LookAtResultWithPos[]>room
+              .lookForAtArea(LOOK_TERRAIN, slot.y - 1, slot.x - 1, slot.y + 1, slot.x + 1, true);
+  }
+
+  source.hasContainer = true;
+}
+
+function initHarvestSlots(source:Source, room:Room)
+{
+  if(_.isUndefined(source.memory.harvestSlots))
+  {
+    var areaList:LookAtResultWithPos[] = <LookAtResultWithPos[]>room
+              .lookForAtArea(LOOK_TERRAIN, source.pos.y - 1, source.pos.x - 1, source.pos.y + 1, source.pos.x + 1, true);
+
+    var slots = [];
+    areaList.forEach(function(area)
+    {
+        if(area.terrain == "plain" || area.terrain == "swamp")
+        {
+          let slot =
+          {
+            x: area.x,
+            y: area.y,
+            creep: undefined,
+          }
+
+          slots.push(slot);
+        }
+    });
+
+    source.harvestSlots = slots;
+  }
+}
+
+function updateCreepInSlot(source:Source, findCreepName:string, newCreepName:string)
+{
+  var slots = source.harvestSlots;
+  for(let slot of slots)
+  {
+    if(slot.creep == findCreepName)
+    {
+      slot.creep = newCreepName;
+      break;
+    }
+  }
+}
+
+function getHarvestSlot(source:Source, creepName:string)
+{
+  for(let slot of source.harvestSlots)
+  {
+    if(slot.creep == creepName) return slot
+  }
+
+  return undefined;
 }
 
 function checkCanUpdate(source:Source)

@@ -6,6 +6,8 @@ import { Globals, RoomGlobalData } from "Globals";
 // Prototypes
 import { sourcePrototype } from "Prototypes/Source";
 import { creepPrototype } from "Prototypes/Creep";
+import { spawnPrototype } from "Prototypes/Spawns";
+import { roomPrototype } from "Prototypes/Room";
 
 export namespace WaynesWorld
 {
@@ -14,6 +16,8 @@ export namespace WaynesWorld
 
   sourcePrototype();
   creepPrototype();
+  spawnPrototype();
+  roomPrototype();
 
   // Screeps gameplay loop entry point
   export function WaynesPowerMinute()
@@ -29,13 +33,13 @@ export namespace WaynesWorld
       }
 
       //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+      //var structures:Structure[] = room.find(FIND_STRUCTURES);
       var sources:Source[] = room.find(FIND_SOURCES)
       var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
-      //var structures:Structure[] = room.find(FIND_STRUCTURES);
 
       // Update Managers
-      bloomingBetty.somehowIManage(room, spawns);// sources, spawns, structures);
-      overseerVenture.somehowIManage(room, sources);
+      bloomingBetty.somehowIManage(room, spawns);
+      overseerVenture.somehowIManage(room, sources, spawns);
     });
   }
 

@@ -4,9 +4,14 @@ export class OverseerVenture
 {
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, sources:Source[])
+  somehowIManage(room:Room, sources:Source[], _spawns:Spawn[])
   {
     if(!this.checkCanUpdate(room)) return;
+
+    // *****
+    // Update Room
+    // *****
+    room.tick(sources);
 
     // *****
     // Update Creeps
@@ -16,7 +21,7 @@ export class OverseerVenture
       var creep = Game.creeps[name];
       if(!creep)
       {
-        var owner:[EntityType, string] = Memory.creeps[name].Owner;
+        var owner:[EntityType, string] = Memory.creeps[name].owner;
         console.log("Creep death", name + ".", "Releasing lease from", EntityType[owner[0]] + ":", owner[1].toString());
         switch(owner[0])
         {
@@ -34,9 +39,11 @@ export class OverseerVenture
 
         delete Memory.creeps[name];
       }
-
-      // Update creeps
-      creep.tick();
+      else
+      {
+        // Update creeps
+        creep.tick(sources);
+      }
     }
 
     // *****
