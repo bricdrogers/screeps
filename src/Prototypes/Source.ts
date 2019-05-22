@@ -45,6 +45,7 @@ export function sourcePrototype()
 
   // ***************
   // Source.ticksSinceLastUpdate
+  //  - Amount of game ticks since the last source update tick
   // ***************
   Object.defineProperty(Source.prototype, 'ticksSinceLastUpdate',
   {
@@ -64,6 +65,7 @@ export function sourcePrototype()
 
   // ***************
   // Source.workParts
+  //  - Total amount of work parts on creeps that are assigned to this source
   // ***************
   Object.defineProperty(Source.prototype, 'workParts',
   {
@@ -83,6 +85,8 @@ export function sourcePrototype()
 
   // ***************
   // Source.requestId
+  //  - The Id of the creep request that this source has submitted. If undefined, this source
+  //    has no current active request
   // ***************
   Object.defineProperty(Source.prototype, 'requestId',
   {
@@ -102,6 +106,8 @@ export function sourcePrototype()
 
   // ***************
   // Source.energyPerTick
+  //  - The max amount of energy per tick that is available to harvest given the amount of workparts
+  //    assigned to this source
   // ***************
   Object.defineProperty(Source.prototype, 'energyPerTick',
   {
@@ -113,6 +119,14 @@ export function sourcePrototype()
 
   // ***************
   // Source.harvestSlots
+  //  - Array of spots that can be harvested from this source
+  //    {
+  //      x: x position of the spot
+  //      y: y position of the spot
+  //      creep: name of the creep assigned to this spot. if undefined, the spot is available
+  //      hasContainer: true if the slot has a container
+  //    }
+  }
   // ***************
   Object.defineProperty(Source.prototype, 'harvestSlots',
   {
@@ -127,28 +141,14 @@ export function sourcePrototype()
   });
 
   // ***************
-  // Source.hasContainer
-  // ***************
-  Object.defineProperty(Source.prototype, 'hasContainer',
-  {
-    get:function():boolean
-    {
-      return this.memory.hasContainer;
-    },
-    set: function(value)
-    {
-      this.memory.hasContainer = value;
-    }
-  });
-
-  // ***************
   // Source.releaseCreepLease(Room)
   // ***************
   Source.prototype.releaseCreepLease = function(creepId:string)
   {
+    if(!removeCreepFromSlot(this, creepId)) return;
+
     var bodyParts:string[] = Memory.creeps[creepId].bodyParts;
     this.workParts -= bodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
-    updateCreepInSlot(this, creepId, undefined);
   }
 
   // ***************
@@ -168,8 +168,11 @@ export function sourcePrototype()
     if(!checkCanUpdate(this)) return;
 
     // Init Memory
-    if(_.isUndefined(this.harvestSlots)) initHarvestSlots(this, room);
-    if(_.isUndefined(this.hasContainer)) createContainer(this, room, spawns);
+    if(_.isUndefined(this.harvestSlots))
+    {
+      initHarvestSlots(this, room);
+      createContainer(this, room, spawns);
+    }
 
     var requestId:string = this.requestId;
     // If the source has a requestId, we need to wait for it to be complete.
@@ -190,7 +193,7 @@ export function sourcePrototype()
       if(request.Status == RequestStatus.Complete)
       {
         this.workParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
-        updateCreepInSlot(this, undefined, request.creepName);
+        assignCreepToSlot(this, request.creepName);
 
         CreepSpawnQueue.RemoveCreepRequest(room, requestId);
         this.requestId = null;
@@ -215,35 +218,26 @@ export function sourcePrototype()
       this.requestId = request.Id;
     }
   }
-}
 
 
 function createContainer(source:Source, room:Room, spawns:Spawn[])
 {
-  // Get the best container position TOOD: FINISH
+  // The best container position is the closest spot to the spawn
   var pathToSource:PathFinderPath = PathFinder.search(spawns[0].pos, {pos: source.pos, range:1});
   var containerPos:RoomPosition = pathToSource.path[pathToSource.path.length - 1];
 
-  for(let step123 of pathToSource.path)
+  var containerSlot:any = source.harvestSlots.find(function(value:any)
+    {
+        return (containerPos.x == value.x && containerPos.y == value.y)
+    });
+
+  if(_.isUndefined(containerSlot))
   {
-    var visual:RoomVisual = new RoomVisual(room.name);
-    visual.circle(step123.x, step123.y);
+    console.log("Failed to create container for source", source.id);
+    return;
   }
-  // var containerSlot:any = source.harvestSlots.find(function(value:any)
-  //   {
-  //       return (containerPos.x == value.x && containerPos.y == value.y)
-  //   });
-
-  // if(_.isUndefined(containerSlot))
-  // {
-  //   console.log("Failed to create container for source", source.id);
-  //   return;
-  // }
-
- //containerSlot.hasContainer = true;
-  console.log(room.createConstructionSite(containerPos.x, containerPos.y, STRUCTURE_CONTAINER));
-
- // source.hasContainer = true;
+  containerSlot.hasContainer = true;
+  room.createConstructionSite(containerPos.x, containerPos.y, STRUCTURE_CONTAINER)
 }
 
 function initHarvestSlots(source:Source, room:Room)
@@ -273,17 +267,46 @@ function initHarvestSlots(source:Source, room:Room)
   }
 }
 
-function updateCreepInSlot(source:Source, findCreepName:string, newCreepName:string)
+function removeCreepFromSlot(source:Source, creepName:string)
 {
   var slots = source.harvestSlots;
   for(let slot of slots)
   {
-    if(slot.creep == findCreepName)
+    if(slot.creep == creepName)
     {
-      slot.creep = newCreepName;
-      break;
+      slot.creep = undefined;
+
+      // If the creep died on the container, we need to try and move
+      // another creep to the container slot
+      if(slot.hasContainer)
+      {
+        var moveSlot = slots.find(function(slot) { return !_.isUndefined(slot.creep) });
+        if(!_.isUndefined(moveSlot))
+        {
+          slot.creep = moveSlot.creep;
+          moveSlot = undefined;
+        }
+      }
+
+      return true;
     }
   }
+
+  return false;
+}
+
+function assignCreepToSlot(source:Source, creepName:string)
+{
+  var assignedSlot:any = undefined;
+  for(let slot of source.harvestSlots)
+  {
+    if(slot.creep == undefined)
+    {
+      assignedSlot= slot;
+      if(slot.hasContainer) break;
+    }
+  }
+  assignedSlot.creep = creepName;
 }
 
 function getHarvestSlot(source:Source, creepName:string)

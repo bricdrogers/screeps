@@ -47,6 +47,6 @@ export class CreepRequest
     this.Status = RequestStatus.Unacknowledged;
     this.Owner = owner;
     this.Id = Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
-    this.creepName = role + Game.time;
+    this.creepName = role + "-" + Game.time + (Math.floor(Math.random() * 65534) + 1).toString();
   }
 }
