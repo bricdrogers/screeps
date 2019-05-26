@@ -24,13 +24,13 @@ export function creepPrototype()
   // ***************
   // Creep.tick(Source[])
   // ***************
-  Creep.prototype.tick = function(sources:Source[])
+  Creep.prototype.tick = function(sources:Source[], structures:Structure[], _constructionSites:ConstructionSite[])
   {
     switch(this.role)
     {
       case ROLE_HARVESTER:
       {
-        harvestTick(this, sources);
+        harvestTick(this, sources, structures);
         break;
       }
       default:

@@ -32,14 +32,14 @@ export namespace WaynesWorld
         CreepSpawnQueue.Initialize(room);
       }
 
-      //var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-      //var structures:Structure[] = room.find(FIND_STRUCTURES);
+      var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+      var structures:Structure[] = room.find(FIND_STRUCTURES);
       var sources:Source[] = room.find(FIND_SOURCES)
       var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
 
       // Update Managers
       bloomingBetty.somehowIManage(room, spawns);
-      overseerVenture.somehowIManage(room, sources, spawns);
+      overseerVenture.somehowIManage(room, sources, spawns, structures, constructionSites);
     });
   }
 

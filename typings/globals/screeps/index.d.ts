@@ -645,7 +645,7 @@ interface Creep extends RoomObject {
     // Prototypes
     bodyParts:string[];
     role:string;
-    tick(sources:Source[]);
+    tick(sources:Source[], structures:Structure[], constructionSite:ConstructionSite[]);
 }
 interface CreepConstructor extends _Constructor<Creep>, _ConstructorById<Creep> {
 }
@@ -1971,10 +1971,11 @@ interface Source extends RoomObject {
     ticksSinceLastUpdate:number;
     workParts:number;
     requestId:string;
+    containerId:string;
     energyPerTick:number;
     harvestSlots:any;
     memory:any;
-    tick(room:Room, spawns:Spawn[]);
+    tick(room:Room, spawns:Spawn[], constructionSites:ConstructionSite[]);
     releaseCreepLease(creepId:string);
     findHarvestSlot(creepId:string);
 }

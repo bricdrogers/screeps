@@ -4,7 +4,7 @@ export class OverseerVenture
 {
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, sources:Source[], spawns:Spawn[])
+  somehowIManage(room:Room, sources:Source[], spawns:Spawn[], structures:Structure[], constructionSites:ConstructionSite[])
   {
     if(!this.checkCanUpdate(room)) return;
 
@@ -42,7 +42,7 @@ export class OverseerVenture
       else
       {
         // Update creeps
-        creep.tick(sources);
+        creep.tick(sources, structures, constructionSites);
       }
     }
 
@@ -51,7 +51,7 @@ export class OverseerVenture
     // *****
     for (let source of sources)
     {
-      source.tick(room, spawns);
+      source.tick(room, spawns, constructionSites);
     }
   }
 

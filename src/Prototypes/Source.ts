@@ -105,6 +105,22 @@ export function sourcePrototype()
   });
 
   // ***************
+  // Source.containerId
+  // Id of the container storage of the source
+  // ***************
+  Object.defineProperty(Source.prototype, 'containerId',
+  {
+    get:function():string
+    {
+      return this.memory.containerId;
+    },
+    set: function(value)
+    {
+      this.memory.containerId = value;
+    }
+  });
+
+  // ***************
   // Source.energyPerTick
   //  - The max amount of energy per tick that is available to harvest given the amount of workparts
   //    assigned to this source
@@ -124,7 +140,7 @@ export function sourcePrototype()
   //      x: x position of the spot
   //      y: y position of the spot
   //      creep: name of the creep assigned to this spot. if undefined, the spot is available
-  //      hasContainer: true if the slot has a container
+  //      containerId: id of the container in this slot. If undefined, no container in this slow
   //    }
   }
   // ***************
@@ -163,7 +179,7 @@ export function sourcePrototype()
   // ***************
   // Source.tick(Room)
   // ***************
-  Source.prototype.tick = function(room:Room, spawns:Spawn[])
+  Source.prototype.tick = function(room:Room, spawns:Spawn[], constructionSites:ConstructionSite[])
   {
     if(!checkCanUpdate(this)) return;
 
@@ -172,6 +188,11 @@ export function sourcePrototype()
     {
       initHarvestSlots(this, room);
       createContainer(this, room, spawns);
+    }
+    else
+    {
+      // Resolve constructionSite id's if needed
+      if(!_.isUndefined(this.memory.needsNextTickResolve)) { resolveContainerId(this, constructionSites); }
     }
 
     var requestId:string = this.requestId;
@@ -219,6 +240,40 @@ export function sourcePrototype()
     }
   }
 
+function resolveContainerId(source:Source, constructionSites:ConstructionSite[])
+{
+  var containerIdResolve:any = source.harvestSlots.find(function(value:any)
+  {
+      return !_.isUndefined(value.needsContainerId);
+  });
+
+  if(!_.isUndefined(containerIdResolve))
+  {
+    // check the construction sites
+    var containerSite:ConstructionSite = constructionSites.find(function(site:ConstructionSite)
+    {
+      if(site.pos.x == containerIdResolve.x &&
+         site.pos.y == containerIdResolve.y &&
+         site.structureType == STRUCTURE_CONTAINER)
+      {
+        return true;
+      }
+      return false;
+    });
+
+    if(!_.isUndefined(containerSite))
+    {
+      containerIdResolve.containerId = containerSite.id;
+      delete containerIdResolve.needsContainerId;
+    }
+    else
+    {
+      // TODO: Check Structures
+    }
+  }
+
+  delete source.memory.needsNextTickResolve;
+}
 
 function createContainer(source:Source, room:Room, spawns:Spawn[])
 {
@@ -236,8 +291,12 @@ function createContainer(source:Source, room:Room, spawns:Spawn[])
     console.log("Failed to create container for source", source.id);
     return;
   }
-  containerSlot.hasContainer = true;
-  room.createConstructionSite(containerPos.x, containerPos.y, STRUCTURE_CONTAINER)
+
+  if(room.createConstructionSite(containerPos.x, containerPos.y, STRUCTURE_CONTAINER) == OK)
+  {
+    containerSlot.needsContainerId = true;
+    source.memory.needsNextTickResolve = true;
+  }
 }
 
 function initHarvestSlots(source:Source, room:Room)
@@ -278,13 +337,13 @@ function removeCreepFromSlot(source:Source, creepName:string)
 
       // If the creep died on the container, we need to try and move
       // another creep to the container slot
-      if(slot.hasContainer)
+      if(!_.isUndefined(slot.containerId))
       {
         var moveSlot = slots.find(function(slot) { return !_.isUndefined(slot.creep) });
         if(!_.isUndefined(moveSlot))
         {
           slot.creep = moveSlot.creep;
-          moveSlot = undefined;
+          moveSlot.creep = undefined;
         }
       }
 
@@ -303,7 +362,7 @@ function assignCreepToSlot(source:Source, creepName:string)
     if(slot.creep == undefined)
     {
       assignedSlot= slot;
-      if(slot.hasContainer) break;
+      if(!_.isUndefined(slot.containerId)) break;
     }
   }
   assignedSlot.creep = creepName;
