@@ -10,9 +10,13 @@ export enum HarvesterState
 
 export function harvestTick(creep:Creep, sources:Source[], structures:Structure[])
 {
-  // TODO: handle deposit into container
-  // TODO: Handle source available positions
   var memory:any = Memory.creeps[creep.name];
+
+  if(memory.hasMultipleOwners)
+  {
+    console.log("Harvesters currently do not support multiple owners. Skipping update.");
+    return;
+  }
 
   // Initialize memory
   if(_.isUndefined(memory.state))
@@ -21,10 +25,10 @@ export function harvestTick(creep:Creep, sources:Source[], structures:Structure[
     memory.state = HarvesterState.Traveling;
   }
 
-  var owner:[EntityType, string] = memory.owner;
+  var owner:[EntityType, string] = memory.owners[0];
   var source:Source = sources.find(function(source) { return source.id == owner[1]; });
-
   var harvestSlot = source.findHarvestSlot(creep.name);
+
   if(_.isUndefined(harvestSlot)) return;
 
   switch(memory.state)

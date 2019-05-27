@@ -157,7 +157,7 @@ export function sourcePrototype()
   });
 
   // ***************
-  // Source.releaseCreepLease(Room)
+  // Source.releaseCreepLease(string)
   // ***************
   Source.prototype.releaseCreepLease = function(creepId:string)
   {
@@ -196,6 +196,7 @@ export function sourcePrototype()
     }
 
     var requestId:string = this.requestId;
+    var owner:[EntityType, string] = [EntityType.Source, this.id];
     // If the source has a requestId, we need to wait for it to be complete.
     if(requestId != null)
     {
@@ -209,20 +210,41 @@ export function sourcePrototype()
         return;
       }
 
-      // If the request is complete, we can release the requestId and add the
-      // assigned body parts
-      if(request.Status == RequestStatus.Complete)
+      switch(request.Status)
       {
-        this.workParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
-        assignCreepToSlot(this, request.creepName);
+        case RequestStatus.Complete:
+        {
+          // If the request is complete, we can release the requestId and add the
+          // assigned body parts
+          this.workParts += request.actualBodyParts.filter(function(bodyPart:string) { return bodyPart == WORK; }).length;
+          assignCreepToSlot(this, request.creepName);
 
-        CreepSpawnQueue.RemoveCreepRequest(room, requestId);
-        this.requestId = null;
-      }
-      else if(request.Status == RequestStatus.Failed)
-      {
-        CreepSpawnQueue.RemoveCreepRequest(room, requestId);
-        this.requestId = null;
+          CreepSpawnQueue.RemoveCreepRequest(room, requestId, owner);
+          this.requestId = null;
+
+          break;
+        }
+        case RequestStatus.Failed:
+        {
+          CreepSpawnQueue.RemoveCreepRequest(room, requestId, owner);
+          this.requestId = null;
+          break;
+        }
+        case RequestStatus.Processing:
+        case RequestStatus.Queued:
+        {
+          // If our request is discretionary, we need to invalidate the request in order
+          // to spawn a new creep
+          if(request.Priority == RequestPriority.Discretionary &&
+             this.workParts <= 2)
+          {
+            console.log("Source:", this.id, "is resubmitting creep request under higher priority.");
+            request.isValid = false;
+            CreepSpawnQueue.RemoveCreepRequest(room, request.Id, owner);
+            this.requestId = null;
+          }
+          break;
+        }
       }
 
       return;
@@ -230,11 +252,15 @@ export function sourcePrototype()
 
     if(!_.isUndefined(getHarvestSlot(this, undefined)) && this.workParts < _maxWorkParts)
     {
+      // If we have 4 or more workparts, we can reduce to priority of the request
+      var priority:RequestPriority = RequestPriority.Discretionary;
+      if(this.workParts < 4) priority = RequestPriority.Routine;
+
       var request:CreepRequest = new CreepRequest([WORK, MOVE, CARRY],
                                                   [WORK, WORK, WORK, WORK],
-                                                  RequestPriority.Routine,
+                                                  priority,
                                                   ROLE_HARVESTER,
-                                                  [EntityType.Source, this.id]);
+                                                  owner);
       CreepSpawnQueue.AddCreepRequest(room, request);
       this.requestId = request.Id;
     }

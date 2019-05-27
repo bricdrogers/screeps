@@ -411,6 +411,7 @@ declare type Container = StructureContainer;
 declare type Tower = StructureTower;
 declare type Spawn = StructureSpawn;
 declare const Spawn: StructureSpawnConstructor;
+
 interface Storage extends StructureStorage {
 }
 /**
@@ -645,7 +646,10 @@ interface Creep extends RoomObject {
     // Prototypes
     bodyParts:string[];
     role:string;
-    tick(sources:Source[], structures:Structure[], constructionSite:ConstructionSite[]);
+    hasMultipleOwners:boolean;
+    tick(sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource});
+    canFulfillRequest(request:any): boolean;
+    releaseFromDuty(owner:any);
 }
 interface CreepConstructor extends _Constructor<Creep>, _ConstructorById<Creep> {
 }
@@ -1443,6 +1447,12 @@ interface Resource extends RoomObject {
      * One of the `RESOURCE_*` constants.
      */
     resourceType: string;
+
+    // Prototypes
+    tick(room:Room);
+    releaseCreepLease(creepId:string);
+    requestId:string;
+    creepId:string;
 }
 interface ResourceConstructor {
     new (id: string): Resource;
@@ -1929,7 +1939,7 @@ interface Room {
 
     // Prototypes
     ticksSinceLastUpdate:number;
-    tick(sources:Source[]);
+    tick(spawns:Spawn[]);
 }
 interface RoomConstructor {
     new (id: string): Room;

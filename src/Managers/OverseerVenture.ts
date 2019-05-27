@@ -4,54 +4,114 @@ export class OverseerVenture
 {
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, sources:Source[], spawns:Spawn[], structures:Structure[], constructionSites:ConstructionSite[])
+  somehowIManage(room:Room, sources:Source[], spawns:Spawn[])
   {
     if(!this.checkCanUpdate(room)) return;
+
+    var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+    var structures:Structure[] = room.find(FIND_STRUCTURES);
+    var resources:{[id:string]: Resource} = this.getResourceDict(room.find(FIND_DROPPED_RESOURCES));
 
     // *****
     // Update Room
     // *****
-    room.tick(sources);
+    room.tick(spawns);
 
     // *****
     // Update Creeps
     // *****
+    this.updateCreeps(sources, structures, spawns, resources);
+
+    // *****
+    // Update Sources
+    // *****
+    sources.forEach(function(source)
+    {
+      source.tick(room, spawns, constructionSites);
+    });
+
+    // *****
+    // Update Resources
+    // *****
+    for(let resourceId in resources)
+    {
+      resources[resourceId].tick(room);
+    }
+  }
+
+  private getResourceDict(resources:Resource[]): {[id:string]: Resource}
+  {
+    var updateResources:{[id:string]: Resource} = {};
+    resources.forEach(function(resource) { updateResources[resource.id] = resource; });
+
+    // Handle resources in memory
+    if(!_.isUndefined(Memory.resources))
+    {
+      for(let resourceId in Memory.resources)
+      {
+        var knownResource:Resource = updateResources[resourceId];
+
+        // If the resource is in memory but not on the map, it has 'died' and we need to update memory
+        if(_.isUndefined(knownResource))
+        {
+          var notification:string = "Resource death " + resourceId + ".";
+          var resourceMem = Memory.resources[resourceId]
+          if(!_.isUndefined(resourceMem.creepId) &&
+             resourceMem.creepId != null)
+          {
+            var creep:Creep = Game.creeps[resourceMem.creepId];
+            creep.releaseFromDuty([EntityType.Resource, resourceId]);
+            notification += "Releasing " + creep.name + " from duty.";
+          }
+
+          console.log(notification);
+          delete Memory.resources[resourceId];
+          delete updateResources[resourceId];
+        }
+      }
+    }
+
+    return updateResources;
+  }
+
+  private updateCreeps(sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource})
+  {
     for (let name in Memory.creeps)
     {
       var creep = Game.creeps[name];
       if(!creep)
       {
-        var owner:[EntityType, string] = Memory.creeps[name].owner;
-        console.log("Creep death", name + ".", "Releasing lease from", EntityType[owner[0]] + ":", owner[1].toString());
-        switch(owner[0])
+        var owners:[EntityType, string][] = Memory.creeps[name].owners;
+        owners.forEach(function(owner)
         {
-          case EntityType.Source:
+          console.log("Creep death", name + ".", "Releasing lease from", EntityType[owner[0]] + ":", owner[1].toString());
+          switch(owner[0])
           {
-            var source:Source = sources.find(function(source) { return source.id == owner[1]; });
-            source.releaseCreepLease(name);
-            break;
+            case EntityType.Source:
+            {
+              var source:Source = sources.find(function(source) { return source.id == owner[1]; });
+              source.releaseCreepLease(name);
+              break;
+            }
+            case EntityType.Resource:
+            {
+              var resource:Resource = resources[owner[1]];
+              if(!_.isUndefined(resource)) resource.releaseCreepLease(name);
+            }
+            default:
+            {
+              console.log("Unknown entity type.", owner[0], "cannot release creep lease.");
+            }
           }
-          default:
-          {
-            console.log("Unknown entity type. cannot release creep lease.");
-          }
-        }
+        });
 
         delete Memory.creeps[name];
       }
       else
       {
         // Update creeps
-        creep.tick(sources, structures, constructionSites);
+        creep.tick(sources, structures, spawns, resources);
       }
-    }
-
-    // *****
-    // Update Sources
-    // *****
-    for (let source of sources)
-    {
-      source.tick(room, spawns, constructionSites);
     }
   }
 

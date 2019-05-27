@@ -8,6 +8,7 @@ import { sourcePrototype } from "Prototypes/Source";
 import { creepPrototype } from "Prototypes/Creep";
 import { spawnPrototype } from "Prototypes/Spawns";
 import { roomPrototype } from "Prototypes/Room";
+import { resourcePrototype } from "Prototypes/Resource";
 
 export namespace WaynesWorld
 {
@@ -18,6 +19,7 @@ export namespace WaynesWorld
   creepPrototype();
   spawnPrototype();
   roomPrototype();
+  resourcePrototype();
 
   // Screeps gameplay loop entry point
   export function WaynesPowerMinute()
@@ -32,14 +34,16 @@ export namespace WaynesWorld
         CreepSpawnQueue.Initialize(room);
       }
 
-      var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-      var structures:Structure[] = room.find(FIND_STRUCTURES);
       var sources:Source[] = room.find(FIND_SOURCES)
       var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
 
+      var creeps:{[id:string]: Creep} = {};
+      var _creeps:Creep[] = room.find(FIND_MY_CREEPS);
+      _creeps.forEach(function(creep) { creeps[creep.name] = creep; });
+
       // Update Managers
-      bloomingBetty.somehowIManage(room, spawns);
-      overseerVenture.somehowIManage(room, sources, spawns, structures, constructionSites);
+      bloomingBetty.somehowIManage(room, spawns, creeps);
+      overseerVenture.somehowIManage(room, sources, spawns);
     });
   }
 

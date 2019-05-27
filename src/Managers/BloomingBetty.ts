@@ -6,15 +6,25 @@ export class BloomingBetty
 {
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, spawns:Spawn[])
+  somehowIManage(room:Room, spawns:Spawn[], _creeps:{[id:string]: Creep})
   {
     if(!this.checkCanUpdate(room)) return;
+
+    // Every thousand ticks, garbage collect the queue
+    if(Game.time % 1000 == 0) CreepSpawnQueue.GarbageCollect(room);
 
     var queue:PriorityQueue<CreepRequest> = CreepSpawnQueue.GetPriorityQueue(room);
     if(queue.length > 0)
     {
       var request:CreepRequest = queue.peek();
-      // TODO: CHECK IDLE CREEPS
+
+      // Check to see if the request has been invalidated
+      if(!request.isValid)
+      {
+        queue.dequeue();
+        request.completeTime = Game.time;
+        return;
+      }
 
       if(request.Status == RequestStatus.Queued)
       {
@@ -26,7 +36,9 @@ export class BloomingBetty
           console.log("Betty: Cannot fulfill creep request; room capacity not available.");
           queue.dequeue();
 
+          request.completeTime = Game.time;
           request.Status = RequestStatus.Failed;
+          return;
         }
       }
 
@@ -36,14 +48,16 @@ export class BloomingBetty
         let creepMemory =
         {
           role: request.Role,
-          owner: request.Owner,
+          owners: request.Owners,
           bodyParts: request.actualBodyParts,
+          hasMultipleOwners: (request.Owners.length > 1),
         }
 
         spawn.spawnCreep(request.actualBodyParts, request.creepName, { memory: creepMemory });
         queue.dequeue();
 
         request.Status = RequestStatus.Complete;
+        request.completeTime = Game.time;
       }
     }
   }
@@ -73,7 +87,6 @@ export class BloomingBetty
 
     return bodyParts;
   }
-
 
   private checkCanUpdate(room:Room)
   {
