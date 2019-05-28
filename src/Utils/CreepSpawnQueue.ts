@@ -32,7 +32,6 @@ export class CreepSpawnQueue
       {
         if(creep.canFulfillRequest(request))
         {
-          console.log("canFulfillRequest");
           request.Status = RequestStatus.Complete;
           request.creepName = creep.name;
           request.actualBodyParts = creep.bodyParts;
@@ -54,6 +53,11 @@ export class CreepSpawnQueue
     for(let requestId in this._queueLookup[room.name][0])
     {
       var queuedRequest:CreepRequest = this._queueLookup[room.name][0][requestId];
+
+      // Make sure the request is not already complete
+      if(queuedRequest.Status == RequestStatus.Complete ||
+        queuedRequest.Status == RequestStatus.Failed) continue;
+
       if(queuedRequest.Role == role &&
          queuedRequest.Priority == priority)
       {

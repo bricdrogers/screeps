@@ -41,9 +41,36 @@ export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: 
         break;
       }
 
-      if(creep.transfer(spawns[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
+
+      for(let spawn of spawns)
       {
-        creep.moveTo(spawns[0], {visualizePathStyle: {stroke: '#ffffff'}});
+        if(spawn.energy == spawn.energyCapacity)
+        {
+          continue;
+        }
+
+        if(creep.transfer(spawn, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
+        {
+          creep.moveTo(spawn, {visualizePathStyle: {stroke: '#ffffff'}});
+        }
+
+        break;
+      }
+
+      // If we get here, all spawns are at max energy capacity.
+      if(!_.isUndefined(creep.room.resourceDump))
+      {
+        if(creep.pos.x == creep.room.resourceDump.x &&
+           creep.pos.y == creep.room.resourceDump.y)
+        {
+          creep.drop(RESOURCE_ENERGY);
+        }
+        else
+        {
+          creep.moveTo(creep.room.resourceDump, {visualizePathStyle: {stroke: '#ffffff'}});
+        }
+
+        break;
       }
 
       break;

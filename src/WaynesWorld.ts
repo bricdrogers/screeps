@@ -9,6 +9,7 @@ import { creepPrototype } from "Prototypes/Creep";
 import { spawnPrototype } from "Prototypes/Spawns";
 import { roomPrototype } from "Prototypes/Room";
 import { resourcePrototype } from "Prototypes/Resource";
+import { controllerPrototype } from "Prototypes/Controller";
 
 export namespace WaynesWorld
 {
@@ -20,6 +21,7 @@ export namespace WaynesWorld
   spawnPrototype();
   roomPrototype();
   resourcePrototype();
+  controllerPrototype();
 
   // Screeps gameplay loop entry point
   export function WaynesPowerMinute()

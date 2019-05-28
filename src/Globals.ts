@@ -1,5 +1,6 @@
 export const ROLE_HARVESTER = "harvester";
 export const ROLE_ROOMBA = "roomba";
+export const ROLE_UPGRADER = "upgrader";
 
 export abstract class Globals
 {

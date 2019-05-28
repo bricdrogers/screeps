@@ -1453,6 +1453,7 @@ interface Resource extends RoomObject {
     releaseCreepLease(creepId:string);
     requestId:string;
     creepId:string;
+    ticksSinceLastUpdate:number;
 }
 interface ResourceConstructor {
     new (id: string): Resource;
@@ -1939,6 +1940,7 @@ interface Room {
 
     // Prototypes
     ticksSinceLastUpdate:number;
+    resourceDump:RoomPosition;
     tick(spawns:Spawn[]);
 }
 interface RoomConstructor {
@@ -2108,6 +2110,10 @@ interface StructureSpawn extends OwnedStructure {
      * @param amount The amount of energy to be transferred. If omitted, all the remaining amount of energy will be used.
      */
     transferEnergy(target: Creep, amount?: number): number;
+
+    // Prototypes
+    ticksSinceLastUpdate:number;
+    tick();
 }
 interface StructureSpawnConstructor extends _Constructor<StructureSpawn>, _ConstructorById<StructureSpawn> {
 }
@@ -2233,6 +2239,13 @@ interface StructureController extends OwnedStructure {
      * Make your claimed controller neutral again.
      */
     unclaim(): number;
+
+    // Prototypes
+    tick();
+    releaseCreepLease(creepId:string);
+    ticksSinceLastUpdate:number;
+    requestId:string;
+    creeps:string[];
 }
 interface StructureControllerConstructor extends _Constructor<StructureController>, _ConstructorById<StructureController> {
 }

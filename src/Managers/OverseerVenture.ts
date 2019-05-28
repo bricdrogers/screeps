@@ -20,7 +20,7 @@ export class OverseerVenture
     // *****
     // Update Creeps
     // *****
-    this.updateCreeps(sources, structures, spawns, resources);
+    this.updateCreeps(room, sources, structures, spawns, resources);
 
     // *****
     // Update Sources
@@ -37,6 +37,11 @@ export class OverseerVenture
     {
       resources[resourceId].tick(room);
     }
+
+    // *****
+    // Update Controller
+    // *****
+    room.controller.tick();
   }
 
   private getResourceDict(resources:Resource[]): {[id:string]: Resource}
@@ -74,7 +79,7 @@ export class OverseerVenture
     return updateResources;
   }
 
-  private updateCreeps(sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource})
+  private updateCreeps(room:Room, sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource})
   {
     for (let name in Memory.creeps)
     {
@@ -97,6 +102,12 @@ export class OverseerVenture
             {
               var resource:Resource = resources[owner[1]];
               if(!_.isUndefined(resource)) resource.releaseCreepLease(name);
+              break;
+            }
+            case EntityType.Controller:
+            {
+              room.controller.releaseCreepLease(name);
+              break;
             }
             default:
             {

@@ -1,6 +1,7 @@
-import { ROLE_HARVESTER, ROLE_ROOMBA } from "Globals";
+import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER } from "Globals";
 import { harvestTick } from "Creeps/Harvester";
 import { roombaTick, roombaAddOwner } from "Creeps/Roomba";
+import { upgraderTick } from "Creeps/Upgrader";
 import { CreepRequest } from "CreepRequest";
 import { EntityType } from "Prototypes/EntityTypes"
 
@@ -42,7 +43,6 @@ export function creepPrototype()
     {
       case ROLE_ROOMBA:
       {
-        console.log("Add Owner");
         roombaAddOwner(this, request.Owners);
         return true;
       }
@@ -79,6 +79,11 @@ export function creepPrototype()
       case ROLE_ROOMBA:
       {
         roombaTick(this, spawns, resources);
+        break;
+      }
+      case ROLE_UPGRADER:
+      {
+        upgraderTick(this);
         break;
       }
       default:

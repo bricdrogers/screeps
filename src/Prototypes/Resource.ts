@@ -115,6 +115,7 @@ export function resourcePrototype()
     if(!checkCanUpdate(this)) return;
     var resource:Resource = this;
 
+    if(resource.pos.isEqualTo(room.resourceDump)) return;
     if(resource.resourceType != RESOURCE_ENERGY)
     {
       console.log("No Resource Support for", resource.resourceType);
@@ -166,16 +167,16 @@ export function resourcePrototype()
   }
 }
 
-function checkCanUpdate(source:Source)
+function checkCanUpdate(resource:Resource)
 {
-  if(source.ticksSinceLastUpdate >= _updateTickRate)
+  if(resource.ticksSinceLastUpdate >= _updateTickRate)
    {
-      source.ticksSinceLastUpdate = 0;
+      resource.ticksSinceLastUpdate = 0;
       return true;
    }
    else
    {
-     ++source.ticksSinceLastUpdate;
+     ++resource.ticksSinceLastUpdate;
      return false;
    }
 }
