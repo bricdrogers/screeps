@@ -57,11 +57,40 @@ export function creepPrototype()
   }
 
   // ***************
-  // Creep.releaseFromDuty([EntityType, string])
+  // Creep.getResourceFromStorage()
   // ***************
-  Creep.prototype.releaseFromDuty = function(_owner:[EntityType, string])
+  Creep.prototype.getResourceFromStorage = function(resourceType:string, resources:{[id:string]: Resource})
   {
-    console.log("Release From Duty", this.name);
+    var creep:Creep = this;
+    var resourceDump:[EntityType, string] = creep.room.resourceDump;
+    if(_.isUndefined(resourceDump))
+    {
+      return ERR_NOT_ENOUGH_RESOURCES;
+    }
+
+    switch(resourceDump[0])
+    {
+      case EntityType.Resource:
+      {
+        var resource:Resource = resources[resourceDump[1]];
+        if(_.isUndefined(resource) || resource == null)
+        {
+          console.log(creep.name, "Unable to get resource from dump. Resource not found.");
+          return ERR_INVALID_TARGET;
+        }
+
+        // If the resource type is different, the resource does not exist
+        if(resource.resourceType != resourceType)
+        {
+          return ERR_NOT_ENOUGH_RESOURCES;
+        }
+
+        return creep.pickup(resource);
+      }
+    }
+
+    console.log(creep.name, "Unable to get resource from dump. Unsupported dump entity.");
+    return ERR_INVALID_TARGET;
   }
 
   // ***************
@@ -83,7 +112,7 @@ export function creepPrototype()
       }
       case ROLE_UPGRADER:
       {
-        upgraderTick(this);
+        upgraderTick(this, resources);
         break;
       }
       default:

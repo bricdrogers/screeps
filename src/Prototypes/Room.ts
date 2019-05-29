@@ -1,3 +1,5 @@
+import { EntityType } from "./EntityTypes";
+
 const _updateTickRate:number = 50;
 
 export function roomPrototype()
@@ -22,11 +24,28 @@ export function roomPrototype()
   });
 
   // ***************
+  // Room.resourceDumpPos
+  // ***************
+  Object.defineProperty(Room.prototype, 'resourceDumpPos',
+  {
+    get:function():RoomPosition
+    {
+      return this.memory.resourceDumpPos;
+    },
+    set: function(value)
+    {
+      this.memory.resourceDumpPos = value;
+    }
+  });
+
+  // ***************
   // Room.resourceDump
+  //  The Entity type is the entity of the dump (container, storage, resource, etc..)
+  //  The string is the id of the entity
   // ***************
   Object.defineProperty(Room.prototype, 'resourceDump',
   {
-    get:function():RoomPosition
+    get:function():[EntityType, string]
     {
       return this.memory.resourceDump;
     },
@@ -44,10 +63,10 @@ export function roomPrototype()
     if(!checkCanUpdate(this)) return;
     var room:Room = this;
 
-    if(_.isUndefined(room.resourceDump))
+    if(_.isUndefined(room.resourceDumpPos))
     {
       var spawn:Spawn = spawns[0];
-      room.resourceDump = new RoomPosition(spawn.pos.x, spawn.pos.y - 2, room.name);
+      room.resourceDumpPos = new RoomPosition(spawn.pos.x, spawn.pos.y - 2, room.name);
     }
   }
 }

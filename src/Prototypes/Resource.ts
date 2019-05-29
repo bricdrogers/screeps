@@ -100,6 +100,21 @@ export function resourcePrototype()
   });
 
   // ***************
+  // Resource.isResourceDump
+  // ***************
+  Object.defineProperty(Resource.prototype, 'isResourceDump',
+  {
+    get:function():string
+    {
+      return this.memory.isResourceDump;
+    },
+    set: function(value)
+    {
+      this.memory.isResourceDump = value;
+    }
+  });
+
+  // ***************
   // Resource.releaseCreepLease(string)
   // ***************
   Resource.prototype.releaseCreepLease = function(_creepId:string)
@@ -114,8 +129,15 @@ export function resourcePrototype()
   {
     if(!checkCanUpdate(this)) return;
     var resource:Resource = this;
+    var owner:[EntityType, string] = [EntityType.Resource, resource.id];
 
-    if(resource.pos.isEqualTo(room.resourceDump)) return;
+    if(resource.pos.isEqualTo(room.resourceDumpPos))
+    {
+      resource.isResourceDump = true;
+      room.resourceDump = owner;
+      return;
+    }
+
     if(resource.resourceType != RESOURCE_ENERGY)
     {
       console.log("No Resource Support for", resource.resourceType);
@@ -123,7 +145,6 @@ export function resourcePrototype()
     }
 
     var requestId:string = resource.requestId;
-    var owner:[EntityType, string] = [EntityType.Resource, resource.id];
     if(requestId != null)
     {
       var request:CreepRequest = CreepSpawnQueue.FindCreepRequest(room, requestId);

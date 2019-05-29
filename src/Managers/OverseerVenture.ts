@@ -1,4 +1,5 @@
 import { EntityType } from "Prototypes/EntityTypes"
+import { roomPrototype } from "Prototypes/Room";
 
 export class OverseerVenture
 {
@@ -10,7 +11,7 @@ export class OverseerVenture
 
     var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
     var structures:Structure[] = room.find(FIND_STRUCTURES);
-    var resources:{[id:string]: Resource} = this.getResourceDict(room.find(FIND_DROPPED_RESOURCES));
+    var resources:{[id:string]: Resource} = this.getResourceDict(room:Room);
 
     // *****
     // Update Room
@@ -44,8 +45,10 @@ export class OverseerVenture
     room.controller.tick();
   }
 
-  private getResourceDict(resources:Resource[]): {[id:string]: Resource}
+  private getResourceDict(room:Room): {[id:string]: Resource}
   {
+    var resources:Resource[] = room.find(FIND_DROPPED_RESOURCES);
+
     var updateResources:{[id:string]: Resource} = {};
     resources.forEach(function(resource) { updateResources[resource.id] = resource; });
 
@@ -61,12 +64,12 @@ export class OverseerVenture
         {
           var notification:string = "Resource death " + resourceId + ".";
           var resourceMem = Memory.resources[resourceId]
-          if(!_.isUndefined(resourceMem.creepId) &&
-             resourceMem.creepId != null)
+
+          if(!_.isUndefined(resourceMem.isResourceDump) &&
+             resourceMem.isResourceDump == true)
           {
-            var creep:Creep = Game.creeps[resourceMem.creepId];
-            creep.releaseFromDuty([EntityType.Resource, resourceId]);
-            notification += "Releasing " + creep.name + " from duty.";
+            // Set the room resource dump as undefined
+            room.resourceDump = undefined;
           }
 
           console.log(notification);
