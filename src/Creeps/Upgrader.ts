@@ -1,5 +1,4 @@
 import { EntityType } from "Prototypes/EntityTypes"
-import { roomPrototype } from "Prototypes/Room";
 
 export enum UpgraderState
 {
@@ -35,10 +34,26 @@ export function upgraderTick(creep:Creep)
   {
     case UpgraderState.Gathering:
     {
+      if(creep.carry.energy == creep.carryCapacity)
+      {
+        creep.say("🏷️" + UpgraderState[UpgraderState.Upgrading]);
+        creep.memory.state = UpgraderState.Upgrading;
+        break;
+      }
+
+      // Load up from the resource dump
+
       break;
     }
     case UpgraderState.Upgrading:
     {
+      if(creep.carry.energy == 0)
+      {
+        creep.say("🌾" + UpgraderState[UpgraderState.Gathering]);
+        creep.memory.state = UpgraderState.Gathering;
+        break;
+      }
+
       break;
     }
   }
