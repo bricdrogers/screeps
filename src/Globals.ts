@@ -9,5 +9,10 @@ export abstract class Globals
 
 export class RoomGlobalData
 {
-  // TODO
+  public Sources:Source[] = [];
+  public Spawns:Spawn[] = [];
+  public Creeps:{[id:string]: Creep} = {};
+  public ConstructionSites:ConstructionSite[] = [];
+  public Structures:Structure[] = [];
+  public Resources:{[id:string]: Resource} = {};
 }

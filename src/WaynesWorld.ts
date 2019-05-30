@@ -36,16 +36,19 @@ export namespace WaynesWorld
         CreepSpawnQueue.Initialize(room);
       }
 
-      var sources:Source[] = room.find(FIND_SOURCES)
-      var spawns:Spawn[] = room.find(FIND_MY_SPAWNS);
+      var roomHeapData:RoomGlobalData = Globals.roomGlobals[room.name];
+      roomHeapData.Sources = room.find(FIND_SOURCES)
+      roomHeapData.Spawns = room.find(FIND_MY_SPAWNS);
+      roomHeapData.ConstructionSites = room.find(FIND_CONSTRUCTION_SITES);
+      roomHeapData.Structures = room.find(FIND_STRUCTURES);
+      roomHeapData.Resources = getResourceDict(room);
 
-      var creeps:{[id:string]: Creep} = {};
-      var _creeps:Creep[] = room.find(FIND_MY_CREEPS);
-      _creeps.forEach(function(creep) { creeps[creep.name] = creep; });
+      var creeps:Creep[] = room.find(FIND_MY_CREEPS);
+      creeps.forEach(function(creep) { roomHeapData.Creeps[creep.name] = creep; });
 
       // Update Managers
-      bloomingBetty.somehowIManage(room, spawns, creeps);
-      overseerVenture.somehowIManage(room, sources, spawns);
+      bloomingBetty.somehowIManage(room);
+      overseerVenture.somehowIManage(room);
     });
   }
 
@@ -60,5 +63,41 @@ export namespace WaynesWorld
     }
 
     return ownedRooms;
+  }
+
+  function getResourceDict(room:Room): {[id:string]: Resource}
+  {
+    var resources:Resource[] = room.find(FIND_DROPPED_RESOURCES);
+
+    var updateResources:{[id:string]: Resource} = {};
+    resources.forEach(function(resource) { updateResources[resource.id] = resource; });
+
+    // Handle resources in memory
+    if(!_.isUndefined(Memory.resources))
+    {
+      for(let resourceId in Memory.resources)
+      {
+        var knownResource:Resource = updateResources[resourceId];
+
+        // If the resource is in memory but not on the map, it has 'died' and we need to update memory
+        if(_.isUndefined(knownResource))
+        {
+          var resourceMem = Memory.resources[resourceId]
+
+          if(!_.isUndefined(resourceMem.isResourceDump) &&
+             resourceMem.isResourceDump == true)
+          {
+            // Set the room resource dump as undefined
+            room.resourceDump = undefined;
+          }
+
+          console.log("Resource death " + resourceId + ".");
+          delete Memory.resources[resourceId];
+          delete updateResources[resourceId];
+        }
+      }
+    }
+
+    return updateResources;
   }
 }

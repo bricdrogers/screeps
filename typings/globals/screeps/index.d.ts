@@ -647,7 +647,7 @@ interface Creep extends RoomObject {
     bodyParts:string[];
     role:string;
     hasMultipleOwners:boolean;
-    tick(sources:Source[], structures:Structure[], spawns:Spawn[]);
+    tick();
     canFulfillRequest(request:any): boolean;
     getResourceFromStorage(resourceType:string);
 }
@@ -1455,6 +1455,7 @@ interface Resource extends RoomObject {
     creepId:string;
     ticksSinceLastUpdate:number;
     isResourceDump:boolean;
+    pathToDump:PathFinderPath;
 }
 interface ResourceConstructor {
     new (id: string): Resource;
@@ -1943,7 +1944,7 @@ interface Room {
     ticksSinceLastUpdate:number;
     resourceDumpPos:RoomPosition;
     resourceDump:[any, string];
-    tick(spawns:Spawn[]);
+    tick();
     getResourceDumpEnergy();
 }
 interface RoomConstructor {
@@ -1990,7 +1991,7 @@ interface Source extends RoomObject {
     energyPerTick:number;
     harvestSlots:any;
     memory:any;
-    tick(room:Room, spawns:Spawn[], constructionSites:ConstructionSite[]);
+    tick(room:Room);
     releaseCreepLease(creepId:string);
     findHarvestSlot(creepId:string);
 }

@@ -104,13 +104,42 @@ export function resourcePrototype()
   // ***************
   Object.defineProperty(Resource.prototype, 'isResourceDump',
   {
-    get:function():string
+    get:function():boolean
     {
-      return this.memory.isResourceDump;
+      if(_.isUndefined(this.memory.isResourceDump))
+      {
+        if(this.pos.isEqualTo(this.room.resourceDumpPos))
+        {
+          this.memory.isResourceDump = true;
+          this.room.resourceDump =  [EntityType.Resource, this.id];
+        }
+        else
+        {
+          this.memory.isResourceDump = false;
+        }
+      }
+
+      return <boolean>this.memory.isResourceDump;
     },
     set: function(value)
     {
       this.memory.isResourceDump = value;
+    }
+  });
+
+  // ***************
+  // Resource.pathToDump
+  // ***************
+  Object.defineProperty(Resource.prototype, 'pathToDump',
+  {
+    get:function():PathFinderPath
+    {
+      if(_.isUndefined(this.memory.pathToDump))
+      {
+        this.memory.pathToDump = PathFinder.search(this.pos, this.room.resourceDumpPos);
+      }
+
+      return <PathFinderPath>this.memory.pathToDump;
     }
   });
 
@@ -128,15 +157,13 @@ export function resourcePrototype()
   Resource.prototype.tick = function(room:Room)
   {
     if(!checkCanUpdate(this)) return;
+
+    checkUndefinedMemory(this);
     var resource:Resource = this;
     var owner:[EntityType, string] = [EntityType.Resource, resource.id];
 
-    if(resource.pos.isEqualTo(room.resourceDumpPos))
-    {
-      resource.isResourceDump = true;
-      room.resourceDump = owner;
-      return;
-    }
+    // If the resource is a resource dump, simply return
+    if(resource.isResourceDump) return;
 
     if(resource.resourceType != RESOURCE_ENERGY)
     {
@@ -186,6 +213,12 @@ export function resourcePrototype()
                                                                room);
     }
   }
+}
+
+function checkUndefinedMemory(resource:Resource)
+{
+  if(_.isUndefined(this.memory.isResourceDump)) this.isResourceDump;
+  if(_.isUndefined(this.memory.pathToDump)) this.pathToDump;
 }
 
 function checkCanUpdate(resource:Resource)

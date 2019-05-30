@@ -1,5 +1,5 @@
 import { EntityType } from "Prototypes/EntityTypes"
-import { OverseerVenture } from "Managers/OverseerVenture"
+import { RoomGlobalData, Globals } from "Globals";
 
 export enum RoombaState
 {
@@ -16,10 +16,12 @@ export function roombaAddOwner(creep:Creep, owners:[EntityType, string][])
   for(let creepOwner of memory.owners)
   {
     // Assume that all owners are resources
-    var resource:Resource = OverseerVenture.Resources[creepOwner[1]];
+    var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[creepOwner[1]];
     if(_.isUndefined(resource)) continue;
 
     totalAmount += resource.amount;
+
+    // TODO:
   }
 
   console.log("Rumba Add Owner", totalAmount);
@@ -30,8 +32,9 @@ export function roombaAddOwner(creep:Creep, owners:[EntityType, string][])
   });
 }
 
-export function roombaTick(creep:Creep, spawns:Spawn[])
+export function roombaTick(creep:Creep)
 {
+  var roomGlobals:RoomGlobalData = Globals.roomGlobals[creep.room.name];
   var memory:any = Memory.creeps[creep.name];
 
   // Initialize memory
@@ -54,7 +57,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[])
         break;
       }
 
-      for(let spawn of spawns)
+      for(let spawn of roomGlobals.Spawns)
       {
         if(spawn.energy == spawn.energyCapacity)
         {
@@ -66,7 +69,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[])
           creep.moveTo(spawn, {visualizePathStyle: {stroke: '#ffffff'}});
         }
 
-        break;
+        return;
       }
 
       // If we get here, all spawns are at max energy capacity.
@@ -82,7 +85,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[])
           creep.moveTo(creep.room.resourceDumpPos, {visualizePathStyle: {stroke: '#ffffff'}});
         }
 
-        break;
+        return;
       }
 
       break;
@@ -104,7 +107,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[])
         break;
       }
 
-      var resource:Resource =  OverseerVenture.Resources[resourceId];
+      var resource:Resource =  roomGlobals.Resources[resourceId];
       if(_.isUndefined(resource) || resource == null)
       {
         creep.say("💤" + RoombaState[RoombaState.Idle]);
@@ -142,7 +145,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[])
           return;
         }
 
-        var resource:Resource = OverseerVenture.Resources[owner[1]];
+        var resource:Resource = roomGlobals.Resources[owner[1]];
 
         // If the resource is undefined, we need to remove the resource
         // as a owner of this creep

@@ -1,4 +1,4 @@
-import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER } from "Globals";
+import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER, Globals } from "Globals";
 import { harvestTick } from "Creeps/Harvester";
 import { roombaTick, roombaAddOwner } from "Creeps/Roomba";
 import { upgraderTick } from "Creeps/Upgrader";
@@ -73,7 +73,7 @@ export function creepPrototype()
     {
       case EntityType.Resource:
       {
-        var resource:Resource = OverseerVenture.Resources[resourceDump[1]];
+        var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[resourceDump[1]];
         if(_.isUndefined(resource) || resource == null)
         {
           console.log(creep.name, "Unable to get resource from dump. Resource not found.");
@@ -95,20 +95,20 @@ export function creepPrototype()
   }
 
   // ***************
-  // Creep.tick(Source[], Structure[], {[id:string]: Resource})
+  // Creep.tick()
   // ***************
-  Creep.prototype.tick = function(sources:Source[], structures:Structure[], spawns:Spawn[])
+  Creep.prototype.tick = function()
   {
     switch(this.role)
     {
       case ROLE_HARVESTER:
       {
-        harvestTick(this, sources, structures);
+        harvestTick(this);
         break;
       }
       case ROLE_ROOMBA:
       {
-        roombaTick(this, spawns);
+        roombaTick(this);
         break;
       }
       case ROLE_UPGRADER:

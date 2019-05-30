@@ -1,4 +1,5 @@
 import { EntityType } from "Prototypes/EntityTypes"
+import { RoomGlobalData, Globals } from "Globals";
 
 export enum HarvesterState
 {
@@ -8,8 +9,10 @@ export enum HarvesterState
   Traveling, // The creep is moving to its spot
 }
 
-export function harvestTick(creep:Creep, sources:Source[], structures:Structure[])
+export function harvestTick(creep:Creep)
 {
+  var roomGlobals:RoomGlobalData = Globals.roomGlobals[creep.room.name];
+
   var memory:any = Memory.creeps[creep.name];
 
   if(memory.hasMultipleOwners)
@@ -26,7 +29,7 @@ export function harvestTick(creep:Creep, sources:Source[], structures:Structure[
   }
 
   var owner:[EntityType, string] = memory.owners[0];
-  var source:Source = sources.find(function(source) { return source.id == owner[1]; });
+  var source:Source = roomGlobals.Sources.find(function(source) { return source.id == owner[1]; });
   var harvestSlot = source.findHarvestSlot(creep.name);
 
   if(_.isUndefined(harvestSlot)) return;
@@ -90,7 +93,7 @@ export function harvestTick(creep:Creep, sources:Source[], structures:Structure[
         break;
       }
 
-      var transferTarget = structures.find(function(structure)
+      var transferTarget = roomGlobals.Structures.find(function(structure)
       {
         if(structure.id == source.containerId) return true;
         return false;

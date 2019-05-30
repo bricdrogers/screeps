@@ -1,42 +1,39 @@
 import { EntityType } from "Prototypes/EntityTypes"
+import { Globals, RoomGlobalData } from "Globals";
 
 export class OverseerVenture
 {
-  public static Resources:{[id:string]: Resource};
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, sources:Source[], spawns:Spawn[])
+  somehowIManage(room:Room)
   {
     if(!this.checkCanUpdate(room)) return;
-
-    var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-    var structures:Structure[] = room.find(FIND_STRUCTURES);
-    OverseerVenture.Resources = this.getResourceDict(room);
+    var roomGlobals:RoomGlobalData = Globals.roomGlobals[room.name];
 
     // *****
     // Update Room
     // *****
-    room.tick(spawns);
+    room.tick();
 
     // *****
     // Update Creeps
     // *****
-    this.updateCreeps(room, sources, structures, spawns);
+    this.updateCreeps(room, roomGlobals);
 
     // *****
     // Update Sources
     // *****
-    sources.forEach(function(source)
+    roomGlobals.Sources.forEach(function(source)
     {
-      source.tick(room, spawns, constructionSites);
+      source.tick(room);
     });
 
     // *****
     // Update Resources
     // *****
-    for(let resourceId in OverseerVenture.Resources)
+    for(let resourceId in roomGlobals.Resources)
     {
-      OverseerVenture.Resources[resourceId].tick(room);
+      roomGlobals.Resources[resourceId].tick(room);
     }
 
     // *****
@@ -45,44 +42,7 @@ export class OverseerVenture
     room.controller.tick();
   }
 
-  private getResourceDict(room:Room): {[id:string]: Resource}
-  {
-    var resources:Resource[] = room.find(FIND_DROPPED_RESOURCES);
-
-    var updateResources:{[id:string]: Resource} = {};
-    resources.forEach(function(resource) { updateResources[resource.id] = resource; });
-
-    // Handle resources in memory
-    if(!_.isUndefined(Memory.resources))
-    {
-      for(let resourceId in Memory.resources)
-      {
-        var knownResource:Resource = updateResources[resourceId];
-
-        // If the resource is in memory but not on the map, it has 'died' and we need to update memory
-        if(_.isUndefined(knownResource))
-        {
-          var notification:string = "Resource death " + resourceId + ".";
-          var resourceMem = Memory.resources[resourceId]
-
-          if(!_.isUndefined(resourceMem.isResourceDump) &&
-             resourceMem.isResourceDump == true)
-          {
-            // Set the room resource dump as undefined
-            room.resourceDump = undefined;
-          }
-
-          console.log(notification);
-          delete Memory.resources[resourceId];
-          delete updateResources[resourceId];
-        }
-      }
-    }
-
-    return updateResources;
-  }
-
-  private updateCreeps(room:Room, sources:Source[], structures:Structure[], spawns:Spawn[])
+  private updateCreeps(room:Room, roomGlobals:RoomGlobalData)
   {
     for (let name in Memory.creeps)
     {
@@ -97,13 +57,13 @@ export class OverseerVenture
           {
             case EntityType.Source:
             {
-              var source:Source = sources.find(function(source) { return source.id == owner[1]; });
+              var source:Source = roomGlobals.Sources.find(function(source) { return source.id == owner[1]; });
               source.releaseCreepLease(name);
               break;
             }
             case EntityType.Resource:
             {
-              var resource:Resource =  OverseerVenture.Resources[owner[1]];
+              var resource:Resource =  roomGlobals.Resources[owner[1]];
               if(!_.isUndefined(resource)) resource.releaseCreepLease(name);
               break;
             }
@@ -124,7 +84,7 @@ export class OverseerVenture
       else
       {
         // Update creeps
-        creep.tick(sources, structures, spawns);
+        creep.tick();
       }
     }
   }

@@ -1,5 +1,5 @@
 import { EntityType } from "./EntityTypes";
-import { OverseerVenture } from "Managers/OverseerVenture"
+import { Globals } from "Globals";
 
 const _updateTickRate:number = 50;
 
@@ -74,7 +74,7 @@ export function roomPrototype()
     {
       case EntityType.Resource:
       {
-        var resource:Resource = OverseerVenture.Resources[resourceDump[1]];
+        var resource:Resource = Globals.roomGlobals[room.name].Resources[resourceDump[1]];
         if(_.isUndefined(resource)) return 0;
         return resource.amount;
       }
@@ -86,7 +86,7 @@ export function roomPrototype()
   // ***************
   // Room.tick()
   // ***************
-  Room.prototype.tick = function(_spawns:Spawn[])
+  Room.prototype.tick = function()
   {
     if(!checkCanUpdate(this)) return;
   }

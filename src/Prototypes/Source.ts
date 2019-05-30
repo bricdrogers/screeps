@@ -1,7 +1,7 @@
 import { CreepRequest, RequestStatus, RequestPriority } from "CreepRequest";
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { EntityType } from "./EntityTypes";
-import { ROLE_HARVESTER } from "Globals";
+import { ROLE_HARVESTER, RoomGlobalData, Globals } from "Globals";
 
 const _updateTickRate:number = 5;
 const _maxWorkParts:number = 5;
@@ -179,20 +179,21 @@ export function sourcePrototype()
   // ***************
   // Source.tick(Room)
   // ***************
-  Source.prototype.tick = function(room:Room, spawns:Spawn[], constructionSites:ConstructionSite[])
+  Source.prototype.tick = function(room:Room)
   {
     if(!checkCanUpdate(this)) return;
+    var roomGlobals:RoomGlobalData = Globals.roomGlobals[room.name];
 
     // Init Memory
     if(_.isUndefined(this.harvestSlots))
     {
       initHarvestSlots(this, room);
-      createContainer(this, room, spawns);
+      createContainer(this, room, roomGlobals.Spawns);
     }
     else
     {
       // Resolve constructionSite id's if needed
-      if(!_.isUndefined(this.memory.needsNextTickResolve)) { resolveContainerId(this, constructionSites); }
+      if(!_.isUndefined(this.memory.needsNextTickResolve)) { resolveContainerId(this, roomGlobals.ConstructionSites); }
     }
 
     var requestId:string = this.requestId;

@@ -1,12 +1,13 @@
 import { CreepRequest, RequestStatus } from "CreepRequest";
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { PriorityQueue } from "Utils/PriorityQueue"
+import { Globals } from "Globals";
 
 export class BloomingBetty
 {
   private readonly _updateTickRate:number = 1;
 
-  somehowIManage(room:Room, spawns:Spawn[], _creeps:{[id:string]: Creep})
+  somehowIManage(room:Room)
   {
     if(!this.checkCanUpdate(room)) return;
 
@@ -42,7 +43,7 @@ export class BloomingBetty
         }
       }
 
-      var spawn:Spawn = spawns[0]; // TODO: multiple spawns per room?
+      var spawn:Spawn = Globals.roomGlobals[room.name].Spawns[0]; // TODO: multiple spawns per room?
       if(spawn.spawnCreep(request.actualBodyParts, request.creepName, { dryRun: true }) == OK)
       {
         let creepMemory =
