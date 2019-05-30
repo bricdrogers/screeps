@@ -6,7 +6,7 @@ export enum UpgraderState
   Upgrading,    // The creep moving into position to upgrade the controller
 }
 
-export function upgraderTick(creep:Creep,  resources:{[id:string]: Resource})
+export function upgraderTick(creep:Creep)
 {
   var memory:any = Memory.creeps[creep.name];
 
@@ -42,7 +42,7 @@ export function upgraderTick(creep:Creep,  resources:{[id:string]: Resource})
       }
 
       // Load up from the resource dump
-      if(creep.getResourceFromStorage(RESOURCE_ENERGY, resources) == ERR_NOT_IN_RANGE)
+      if(creep.getResourceFromStorage(RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
       {
         creep.moveTo(creep.room.resourceDumpPos);
       }

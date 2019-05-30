@@ -1,9 +1,11 @@
 import { EntityType } from "./EntityTypes";
+import { OverseerVenture } from "Managers/OverseerVenture"
 
 const _updateTickRate:number = 50;
 
 export function roomPrototype()
 {
+
   // ***************
   // Room.ticksSinceLastUpdate
   // ***************
@@ -30,11 +32,14 @@ export function roomPrototype()
   {
     get:function():RoomPosition
     {
-      return this.memory.resourceDumpPos;
-    },
-    set: function(value)
-    {
-      this.memory.resourceDumpPos = value;
+      if(_.isUndefined(this.memory.resourceDumpPos))
+      {
+        var spawns:Spawn[] = this.find(FIND_MY_SPAWNS);
+        this.memory.resourceDumpPos = new RoomPosition(spawns[0].pos.x, spawns[0].pos.y - 2, this.name);
+      }
+
+      var pos:any = this.memory.resourceDumpPos;
+      return new RoomPosition(pos.x, pos.y, this.name);
     }
   });
 
@@ -56,18 +61,34 @@ export function roomPrototype()
   });
 
   // ***************
-  // Room.tick()
+  // Room.getResourceDumpEnergy()
   // ***************
-  Room.prototype.tick = function(spawns:Spawn[])
+  Room.prototype.getResourceDumpEnergy = function()
   {
-    if(!checkCanUpdate(this)) return;
     var room:Room = this;
 
-    if(_.isUndefined(room.resourceDumpPos))
+    var resourceDump:[EntityType, string] = room.resourceDump;
+    if(_.isUndefined(resourceDump)) return 0;
+
+    switch(resourceDump[0])
     {
-      var spawn:Spawn = spawns[0];
-      room.resourceDumpPos = new RoomPosition(spawn.pos.x, spawn.pos.y - 2, room.name);
+      case EntityType.Resource:
+      {
+        var resource:Resource = OverseerVenture.Resources[resourceDump[1]];
+        if(_.isUndefined(resource)) return 0;
+        return resource.amount;
+      }
     }
+
+    return 0;
+  }
+
+  // ***************
+  // Room.tick()
+  // ***************
+  Room.prototype.tick = function(_spawns:Spawn[])
+  {
+    if(!checkCanUpdate(this)) return;
   }
 }
 

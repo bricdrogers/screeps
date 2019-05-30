@@ -114,7 +114,7 @@ export function controllerPrototype()
   }
 
   // ***************
-  // StructureController.tick(Room)
+  // StructureController.tick()
   // ***************
   StructureController.prototype.tick = function()
   {
@@ -153,7 +153,7 @@ export function controllerPrototype()
 
     // The controller wants as many creeps as possible. Constantly request more creeps
     // at the lowest priority.
-    if(controller.level < 8)
+    if(controller.level < 8 && controller.room.getResourceDumpEnergy() > 500)
     {
       var request:CreepRequest = new CreepRequest([WORK, WORK, MOVE, CARRY],
                                                   [MOVE, MOVE, CARRY, WORK, WORK],

@@ -647,9 +647,9 @@ interface Creep extends RoomObject {
     bodyParts:string[];
     role:string;
     hasMultipleOwners:boolean;
-    tick(sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource});
+    tick(sources:Source[], structures:Structure[], spawns:Spawn[]);
     canFulfillRequest(request:any): boolean;
-    getResourceFromStorage(resourceType:string, resources:{[id:string]: Resource});
+    getResourceFromStorage(resourceType:string);
 }
 interface CreepConstructor extends _Constructor<Creep>, _ConstructorById<Creep> {
 }
@@ -1944,6 +1944,7 @@ interface Room {
     resourceDumpPos:RoomPosition;
     resourceDump:[any, string];
     tick(spawns:Spawn[]);
+    getResourceDumpEnergy();
 }
 interface RoomConstructor {
     new (id: string): Room;

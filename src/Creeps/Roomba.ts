@@ -1,4 +1,5 @@
 import { EntityType } from "Prototypes/EntityTypes"
+import { OverseerVenture } from "Managers/OverseerVenture"
 
 export enum RoombaState
 {
@@ -10,14 +11,26 @@ export enum RoombaState
 
 export function roombaAddOwner(creep:Creep, owners:[EntityType, string][])
 {
+  var totalAmount:number = 0;
   var memory:any = Memory.creeps[creep.name];
+  for(let creepOwner of memory.owners)
+  {
+    // Assume that all owners are resources
+    var resource:Resource = OverseerVenture.Resources[creepOwner[1]];
+    if(_.isUndefined(resource)) continue;
+
+    totalAmount += resource.amount;
+  }
+
+  console.log("Rumba Add Owner", totalAmount);
+
   owners.forEach(function(owner)
   {
     memory.owners.push(owner);
   });
 }
 
-export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: Resource})
+export function roombaTick(creep:Creep, spawns:Spawn[])
 {
   var memory:any = Memory.creeps[creep.name];
 
@@ -41,7 +54,6 @@ export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: 
         break;
       }
 
-
       for(let spawn of spawns)
       {
         if(spawn.energy == spawn.energyCapacity)
@@ -58,16 +70,16 @@ export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: 
       }
 
       // If we get here, all spawns are at max energy capacity.
-      if(!_.isUndefined(creep.room.resourceDump))
+      if(!_.isUndefined(creep.room.resourceDumpPos))
       {
-        if(creep.pos.x == creep.room.resourceDump.x &&
-           creep.pos.y == creep.room.resourceDump.y)
+        if(creep.pos.x == creep.room.resourceDumpPos.x &&
+           creep.pos.y == creep.room.resourceDumpPos.y)
         {
           creep.drop(RESOURCE_ENERGY);
         }
         else
         {
-          creep.moveTo(creep.room.resourceDump, {visualizePathStyle: {stroke: '#ffffff'}});
+          creep.moveTo(creep.room.resourceDumpPos, {visualizePathStyle: {stroke: '#ffffff'}});
         }
 
         break;
@@ -92,7 +104,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: 
         break;
       }
 
-      var resource:Resource = resources[resourceId];
+      var resource:Resource =  OverseerVenture.Resources[resourceId];
       if(_.isUndefined(resource) || resource == null)
       {
         creep.say("💤" + RoombaState[RoombaState.Idle]);
@@ -130,7 +142,7 @@ export function roombaTick(creep:Creep, spawns:Spawn[], resources:{[id:string]: 
           return;
         }
 
-        var resource:Resource = resources[owner[1]];
+        var resource:Resource = OverseerVenture.Resources[owner[1]];
 
         // If the resource is undefined, we need to remove the resource
         // as a owner of this creep

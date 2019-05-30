@@ -1,8 +1,8 @@
 import { EntityType } from "Prototypes/EntityTypes"
-import { roomPrototype } from "Prototypes/Room";
 
 export class OverseerVenture
 {
+  public static Resources:{[id:string]: Resource};
   private readonly _updateTickRate:number = 1;
 
   somehowIManage(room:Room, sources:Source[], spawns:Spawn[])
@@ -11,7 +11,7 @@ export class OverseerVenture
 
     var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
     var structures:Structure[] = room.find(FIND_STRUCTURES);
-    var resources:{[id:string]: Resource} = this.getResourceDict(room:Room);
+    OverseerVenture.Resources = this.getResourceDict(room);
 
     // *****
     // Update Room
@@ -21,7 +21,7 @@ export class OverseerVenture
     // *****
     // Update Creeps
     // *****
-    this.updateCreeps(room, sources, structures, spawns, resources);
+    this.updateCreeps(room, sources, structures, spawns);
 
     // *****
     // Update Sources
@@ -34,9 +34,9 @@ export class OverseerVenture
     // *****
     // Update Resources
     // *****
-    for(let resourceId in resources)
+    for(let resourceId in OverseerVenture.Resources)
     {
-      resources[resourceId].tick(room);
+      OverseerVenture.Resources[resourceId].tick(room);
     }
 
     // *****
@@ -82,7 +82,7 @@ export class OverseerVenture
     return updateResources;
   }
 
-  private updateCreeps(room:Room, sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource})
+  private updateCreeps(room:Room, sources:Source[], structures:Structure[], spawns:Spawn[])
   {
     for (let name in Memory.creeps)
     {
@@ -103,7 +103,7 @@ export class OverseerVenture
             }
             case EntityType.Resource:
             {
-              var resource:Resource = resources[owner[1]];
+              var resource:Resource =  OverseerVenture.Resources[owner[1]];
               if(!_.isUndefined(resource)) resource.releaseCreepLease(name);
               break;
             }
@@ -124,7 +124,7 @@ export class OverseerVenture
       else
       {
         // Update creeps
-        creep.tick(sources, structures, spawns, resources);
+        creep.tick(sources, structures, spawns);
       }
     }
   }

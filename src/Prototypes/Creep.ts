@@ -4,6 +4,7 @@ import { roombaTick, roombaAddOwner } from "Creeps/Roomba";
 import { upgraderTick } from "Creeps/Upgrader";
 import { CreepRequest } from "CreepRequest";
 import { EntityType } from "Prototypes/EntityTypes"
+import { OverseerVenture } from "Managers/OverseerVenture"
 
 export function creepPrototype()
 {
@@ -59,7 +60,7 @@ export function creepPrototype()
   // ***************
   // Creep.getResourceFromStorage()
   // ***************
-  Creep.prototype.getResourceFromStorage = function(resourceType:string, resources:{[id:string]: Resource})
+  Creep.prototype.getResourceFromStorage = function(resourceType:string)
   {
     var creep:Creep = this;
     var resourceDump:[EntityType, string] = creep.room.resourceDump;
@@ -72,7 +73,7 @@ export function creepPrototype()
     {
       case EntityType.Resource:
       {
-        var resource:Resource = resources[resourceDump[1]];
+        var resource:Resource = OverseerVenture.Resources[resourceDump[1]];
         if(_.isUndefined(resource) || resource == null)
         {
           console.log(creep.name, "Unable to get resource from dump. Resource not found.");
@@ -96,7 +97,7 @@ export function creepPrototype()
   // ***************
   // Creep.tick(Source[], Structure[], {[id:string]: Resource})
   // ***************
-  Creep.prototype.tick = function(sources:Source[], structures:Structure[], spawns:Spawn[], resources:{[id:string]: Resource})
+  Creep.prototype.tick = function(sources:Source[], structures:Structure[], spawns:Spawn[])
   {
     switch(this.role)
     {
@@ -107,12 +108,12 @@ export function creepPrototype()
       }
       case ROLE_ROOMBA:
       {
-        roombaTick(this, spawns, resources);
+        roombaTick(this, spawns);
         break;
       }
       case ROLE_UPGRADER:
       {
-        upgraderTick(this, resources);
+        upgraderTick(this);
         break;
       }
       default:
