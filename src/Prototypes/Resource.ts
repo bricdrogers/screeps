@@ -1,6 +1,6 @@
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
 import { CreepRequest, RequestPriority, RequestStatus } from "CreepRequest";
-import { ROLE_ROOMBA } from "Globals";
+import { ROLE_ROOMBA, Globals } from "Globals";
 import { EntityType } from "./EntityTypes";
 
 const _updateTickRate:number = 6;
@@ -12,7 +12,7 @@ export function resourcePrototype()
   // ***************
   Object.defineProperty(Resource.prototype, 'memory',
   {
-    get:function()
+    get:function():any
     {
       if(_.isUndefined(Memory.resources))
       {
@@ -136,7 +136,35 @@ export function resourcePrototype()
     {
       if(_.isUndefined(this.memory.pathToDump))
       {
-        this.memory.pathToDump = PathFinder.search(this.pos, this.room.resourceDumpPos);
+        this.memory.pathToDump = PathFinder.search(this.pos, this.room.resourceDumpPos,
+          {
+            plainCost: 2,
+            swampCost: 10,
+            roomCallback: function(roomName)
+            {
+              let costMatrix = new PathFinder.CostMatrix;
+
+              let structures:Structure[] = Globals.roomGlobals[roomName].Structures;
+              structures.forEach(function(structure)
+              {
+                // Set roads as a lower code than the plains
+                if(structure.structureType == STRUCTURE_ROAD)
+                {
+                  costMatrix.set(structure.pos.x, structure.pos.y, 1);
+                }
+                // Every other structure we need to set as unwalkable except containers
+                // and ramparts
+                else if(structure.structureType != STRUCTURE_CONTAINER &&
+                        structure.structureType != STRUCTURE_RAMPART)
+                {
+                  costMatrix.set(structure.pos.x, structure.pos.y, 0xff);
+                }
+              });
+
+              return costMatrix;
+            },
+          }
+        );
       }
 
       return <PathFinderPath>this.memory.pathToDump;
@@ -157,8 +185,8 @@ export function resourcePrototype()
   Resource.prototype.tick = function(room:Room)
   {
     if(!checkCanUpdate(this)) return;
-
     checkUndefinedMemory(this);
+
     var resource:Resource = this;
     var owner:[EntityType, string] = [EntityType.Resource, resource.id];
 
@@ -217,8 +245,8 @@ export function resourcePrototype()
 
 function checkUndefinedMemory(resource:Resource)
 {
-  if(_.isUndefined(this.memory.isResourceDump)) this.isResourceDump;
-  if(_.isUndefined(this.memory.pathToDump)) this.pathToDump;
+  if(_.isUndefined(resource.memory.isResourceDump)) resource.isResourceDump;
+  if(_.isUndefined(resource.memory.pathToDump)) resource.pathToDump;
 }
 
 function checkCanUpdate(resource:Resource)

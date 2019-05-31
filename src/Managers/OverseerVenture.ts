@@ -3,7 +3,7 @@ import { Globals, RoomGlobalData } from "Globals";
 
 export class OverseerVenture
 {
-  private readonly _updateTickRate:number = 1;
+  private readonly _updateTickRate:number = 0;
 
   somehowIManage(room:Room)
   {

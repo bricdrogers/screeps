@@ -1451,6 +1451,7 @@ interface Resource extends RoomObject {
     // Prototypes
     tick(room:Room);
     releaseCreepLease(creepId:string);
+    memory:any;
     requestId:string;
     creepId:string;
     ticksSinceLastUpdate:number;

@@ -9,27 +9,44 @@ export enum RoombaState
   Calculating,  // The creep is calculating its next collection
 }
 
-export function roombaAddOwner(creep:Creep, owners:[EntityType, string][])
+export function roombaTryAddOwner(creep:Creep, owners:[EntityType, string][]):boolean
 {
-  var totalAmount:number = 0;
+  let ticksToComplete:number = 0;
   var memory:any = Memory.creeps[creep.name];
   for(let creepOwner of memory.owners)
   {
-    // Assume that all owners are resources
-    var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[creepOwner[1]];
-    if(_.isUndefined(resource)) continue;
+    var ownerTicks = getTicksToComplete(creep, creepOwner);
+    if(_.isUndefined(ownerTicks)) continue;
 
-    totalAmount += resource.amount;
+    ticksToComplete += ownerTicks;
 
-    // TODO:
+    // If the ticks to complete picking up all owned resources is larger than the amount
+    // of time this creep has left to live, then we deny adding the new owner.
+    if(ticksToComplete > creep.ticksToLive)
+    {
+      console.log("cannot add owner");
+      return false;
+    }
   }
-
-  console.log("Rumba Add Owner", totalAmount);
 
   owners.forEach(function(owner)
   {
-    memory.owners.push(owner);
+    var ownerTicks = getTicksToComplete(creep, owner);
+    if(_.isUndefined(ownerTicks)) return;
+
+    ticksToComplete += ownerTicks;
+    if(ticksToComplete <= creep.ticksToLive)
+    {
+      console.log(creep.name, "adding new owner", EntityType[owner[0]], ":", owner[1]);
+      memory.owners.push(owner);
+    }
+    else
+    {
+      return false;
+    }
   });
+
+  return true;
 }
 
 export function roombaTick(creep:Creep)
@@ -134,8 +151,11 @@ export function roombaTick(creep:Creep)
     }
     case RoombaState.Calculating:
     {
+      // Need to evaluate owners to remove the ones we will not be able to get to
+      // and the dead ones
+      evaluateOwners(creep, memory.owners);
+
       // Prioritize owners
-      var invalidOwners:[EntityType, string][] = [];
       var priorityResource:Resource = null;
       owners.forEach(function(owner)
       {
@@ -146,26 +166,10 @@ export function roombaTick(creep:Creep)
         }
 
         var resource:Resource = roomGlobals.Resources[owner[1]];
-
-        // If the resource is undefined, we need to remove the resource
-        // as a owner of this creep
-        if(_.isUndefined(resource) || resource == null)
-        {
-          invalidOwners.push(owner);
-          return;
-        }
-
         if(priorityResource == null || resource.amount > priorityResource.amount)
         {
           priorityResource = resource;
         }
-      });
-
-      // Delete invalid owners
-      invalidOwners.forEach(function(invalidOwner)
-      {
-        const removeIndex = owners.findIndex(owner => owner[0] == invalidOwner[0] && owner[1] == invalidOwner[1]);
-        if(removeIndex > -1) owners.splice(removeIndex, 1);
       });
 
       if(priorityResource != null)
@@ -184,4 +188,75 @@ export function roombaTick(creep:Creep)
       break;
     }
   }
+}
+
+function evaluateOwners(creep:Creep, owners:[EntityType, string][])
+{
+  let ticksToComplete:number = 0;
+  let invalidOwners:[EntityType, string][] = [];
+  for(let creepOwner of owners)
+  {
+    var ownerTicks = getTicksToComplete(creep, creepOwner);
+
+    // The resource is undefined and has probably died out before
+    // the rumba was spawned.
+    if(_.isUndefined(ownerTicks))
+    {
+      invalidOwners.push(creepOwner);
+      continue;
+    }
+
+    ticksToComplete += ownerTicks;
+    if(ticksToComplete > creep.ticksToLive)
+    {
+      var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[creepOwner[1]];
+      console.log(creep.name, "is overburdened and is releasing owner:", resource.id);
+      resource.releaseCreepLease(creep.id);
+
+      invalidOwners.push(creepOwner);
+    }
+  }
+  console.log(ticksToComplete, ":", creep.ticksToLive);
+  deleteInvalidOwners(invalidOwners, owners);
+}
+
+function getTicksToComplete(creep:Creep, owner:[EntityType, string]):number
+{
+    // Assume that all owners are resources
+    var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[owner[1]];
+    if(_.isUndefined(resource)) return undefined;
+
+    var moveParts:number = 0;
+    var carryParts:number = 0;
+    var otherParts:number = 0;
+    creep.bodyParts.forEach(function(bodyPart)
+    {
+      if(bodyPart == MOVE) moveParts += 1;
+      else if(bodyPart == CARRY) carryParts += 1;
+      else otherParts += 1;
+
+    });
+    // pathFatigue is the total fatigue cost of a one way trip for the creep to get from the
+    // resource to the dump. Note: We use half cost for the carry parts since they
+    // only cost fatigue when they are full.
+    var pathFatigue:number = (resource.pathToDump.cost * otherParts) +
+                             (Math.ceil(resource.pathToDump.cost / 2)) * carryParts;
+    var moveReduction:number = (moveParts * 2)
+
+    // We multiply the total pathFatigue by two to count for a path to the dump and back
+    // to the resource. NOTE: In some cases we will be able to grab the entire resource in
+    // one trip. This is just an estimate
+    var ticksToTraverse:number = Math.ceil((pathFatigue * 2) / moveReduction);
+    var totalTripsRequired:number = Math.ceil(resource.amount / (carryParts * 50));
+    return ticksToTraverse * totalTripsRequired;
+}
+
+// Delete invalid owners from memory
+function deleteInvalidOwners(invalidOwners:[EntityType, string][], owners:[EntityType, string][])
+{
+    invalidOwners.forEach(function(invalidOwner)
+    {
+      const removeIndex = owners.findIndex(owner => owner[0] == invalidOwner[0] && owner[1] == invalidOwner[1]);
+      if(removeIndex > -1) owners.splice(removeIndex, 1);
+    });
 }
