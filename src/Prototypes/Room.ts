@@ -187,6 +187,13 @@ export function roomPrototype()
     room.energyPerTickAvg += room.energyTickDelta / 200;
     console.log("Energy Income Per Tick", room.energyPerTickAvg);
 
+    // Maybe try to switch to a circle buffer
+    //     int j = (int) (counter % size);
+    // buffer[j] = mostrecentvalue;
+    // avg = (avg * size - buffer[j - 1 == -1 ? size - 1 : j - 1] + buffer[j]) / size;
+    // counter++;
+    // buffer[j - 1 == -1 ? size - 1 : j - 1] is the oldest value stored
+
     room.energyTickDelta = 0;
   }
 }
