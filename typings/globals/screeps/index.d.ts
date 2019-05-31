@@ -649,7 +649,6 @@ interface Creep extends RoomObject {
     hasMultipleOwners:boolean;
     tick();
     canFulfillRequest(request:any): boolean;
-    getResourceFromStorage(resourceType:string);
 }
 interface CreepConstructor extends _Constructor<Creep>, _ConstructorById<Creep> {
 }
@@ -1942,11 +1941,14 @@ interface Room {
     lookForAtArea(type: string, top: number, left: number, bottom: number, right: number, asArray?: boolean): LookAtResultMatrix | LookAtResultWithPos[];
 
     // Prototypes
-    ticksSinceLastUpdate:number;
     resourceDumpPos:RoomPosition;
     resourceDump:[any, string];
+    energyTickDelta:number;
+    energyPerTickAvg:number;
     tick();
     getResourceDumpEnergy();
+    getResourceFromDump(creep:Creep, resourceType:string);
+    addResourceToDump(creep:Creep, resourceType:string);
 }
 interface RoomConstructor {
     new (id: string): Room;

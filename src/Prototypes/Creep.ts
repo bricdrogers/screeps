@@ -1,9 +1,8 @@
-import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER, Globals } from "Globals";
+import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER } from "Globals";
 import { harvestTick } from "Creeps/Harvester";
 import { roombaTick, roombaTryAddOwner } from "Creeps/Roomba";
 import { upgraderTick } from "Creeps/Upgrader";
 import { CreepRequest } from "CreepRequest";
-import { EntityType } from "Prototypes/EntityTypes"
 
 export function creepPrototype()
 {
@@ -53,43 +52,6 @@ export function creepPrototype()
     }
 
     return false;
-  }
-
-  // ***************
-  // Creep.getResourceFromStorage()
-  // ***************
-  Creep.prototype.getResourceFromStorage = function(resourceType:string)
-  {
-    var creep:Creep = this;
-    var resourceDump:[EntityType, string] = creep.room.resourceDump;
-    if(_.isUndefined(resourceDump))
-    {
-      return ERR_NOT_ENOUGH_RESOURCES;
-    }
-
-    switch(resourceDump[0])
-    {
-      case EntityType.Resource:
-      {
-        var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[resourceDump[1]];
-        if(_.isUndefined(resource) || resource == null)
-        {
-          console.log(creep.name, "Unable to get resource from dump. Resource not found.");
-          return ERR_INVALID_TARGET;
-        }
-
-        // If the resource type is different, the resource does not exist
-        if(resource.resourceType != resourceType)
-        {
-          return ERR_NOT_ENOUGH_RESOURCES;
-        }
-
-        return creep.pickup(resource);
-      }
-    }
-
-    console.log(creep.name, "Unable to get resource from dump. Unsupported dump entity.");
-    return ERR_INVALID_TARGET;
   }
 
   // ***************

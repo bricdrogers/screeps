@@ -42,7 +42,7 @@ export function upgraderTick(creep:Creep)
       }
 
       // Load up from the resource dump
-      if(creep.getResourceFromStorage(RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
+      if(creep.room.getResourceFromDump(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
       {
         creep.moveTo(creep.room.resourceDumpPos);
       }

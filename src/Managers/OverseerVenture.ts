@@ -3,17 +3,9 @@ import { Globals, RoomGlobalData } from "Globals";
 
 export class OverseerVenture
 {
-  private readonly _updateTickRate:number = 0;
-
   somehowIManage(room:Room)
   {
-    if(!this.checkCanUpdate(room)) return;
     var roomGlobals:RoomGlobalData = Globals.roomGlobals[room.name];
-
-    // *****
-    // Update Room
-    // *****
-    room.tick();
 
     // *****
     // Update Creeps
@@ -40,6 +32,13 @@ export class OverseerVenture
     // Update Controller
     // *****
     room.controller.tick();
+
+    // *****
+    // Update Room
+    // The room must be processed after the creep tick to account for the creeps
+    // energy deposits
+    // *****
+    room.tick();
   }
 
   private updateCreeps(room:Room, roomGlobals:RoomGlobalData)
@@ -87,19 +86,5 @@ export class OverseerVenture
         creep.tick();
       }
     }
-  }
-
-  private checkCanUpdate(room:Room)
-  {
-    if(room.memory.venture_ticksSinceLastUpdate >= this._updateTickRate)
-     {
-       room.memory.venture_ticksSinceLastUpdate = 0;
-       return true;
-     }
-     else
-     {
-       ++room.memory.venture_ticksSinceLastUpdate;
-       return false;
-     }
   }
 }

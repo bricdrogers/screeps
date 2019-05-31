@@ -1,7 +1,5 @@
 import { EntityType } from "Prototypes/EntityTypes"
 import { RoomGlobalData, Globals } from "Globals";
-import { createWriteStream } from "fs";
-import { createConnection } from "net";
 
 export enum RoombaState
 {
@@ -26,7 +24,6 @@ export function roombaTryAddOwner(creep:Creep, owners:[EntityType, string][]):bo
     // of time this creep has left to live, then we deny adding the new owner.
     if(ticksToComplete > creep.ticksToLive)
     {
-      console.log("cannot add owner");
       return false;
     }
   }
@@ -90,20 +87,10 @@ export function roombaTick(creep:Creep)
         return;
       }
 
-      // If we get here, all spawns are at max energy capacity.
-      if(!_.isUndefined(creep.room.resourceDumpPos))
+       // If we get here, all spawns are at max energy capacity.
+      if(creep.room.addResourceToDump(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
       {
-        if(creep.pos.x == creep.room.resourceDumpPos.x &&
-           creep.pos.y == creep.room.resourceDumpPos.y)
-        {
-          creep.drop(RESOURCE_ENERGY);
-        }
-        else
-        {
-          creep.moveTo(creep.room.resourceDumpPos, {visualizePathStyle: {stroke: '#ffffff'}});
-        }
-
-        return;
+        creep.moveTo(creep.room.resourceDumpPos, {visualizePathStyle: {stroke: '#ffffff'}});
       }
 
       break;
@@ -217,10 +204,17 @@ function evaluateOwners(creep:Creep, owners:[EntityType, string][])
       console.log(creep.name, "is overburdened and is releasing owner:", resource.id);
       resource.releaseCreepLease(creep.id);
 
-      invalidOwners.push(creepOwner);
+      // If this creep only has a single owner left, we will release the resource but keep it as
+      // a owner of this creep. This allows the resource to request another creep (since this creep)
+      // will not be able to transport all of the resources, but still work on transporting it until
+      // we die. Otherwise the creep will just sit idle until it does
+      if(owners.length - invalidOwners.length > 1)
+      {
+        invalidOwners.push(creepOwner);
+      }
     }
   }
-  console.log(creep.name, ":", ticksToComplete, ":", creep.ticksToLive);
+  //console.log(creep.name, ":", ticksToComplete, ":", creep.ticksToLive);
   deleteInvalidOwners(invalidOwners, owners);
 }
 
