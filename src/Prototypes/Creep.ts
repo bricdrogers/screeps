@@ -37,13 +37,13 @@ export function creepPrototype()
   // ***************
   // Creep.canFulfillRequest(CreepRequest)
   // ***************
-  Creep.prototype.canFulfillRequest = function(request:CreepRequest)
+  Creep.prototype.canFulfillRequest = function(request:CreepRequest):boolean
   {
     switch(request.Role)
     {
       case ROLE_ROOMBA:
       {
-        return roombaTryAddOwner(this, request.Owners);;
+        return roombaTryAddOwner(this, request.Owners);
       }
       default:
       {

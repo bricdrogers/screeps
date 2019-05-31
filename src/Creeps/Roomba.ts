@@ -1,5 +1,7 @@
 import { EntityType } from "Prototypes/EntityTypes"
 import { RoomGlobalData, Globals } from "Globals";
+import { createWriteStream } from "fs";
+import { createConnection } from "net";
 
 export enum RoombaState
 {
@@ -29,22 +31,21 @@ export function roombaTryAddOwner(creep:Creep, owners:[EntityType, string][]):bo
     }
   }
 
-  owners.forEach(function(owner)
+  for(let owner of owners)
   {
     var ownerTicks = getTicksToComplete(creep, owner);
-    if(_.isUndefined(ownerTicks)) return;
+    if(_.isUndefined(ownerTicks)) continue;
 
     ticksToComplete += ownerTicks;
     if(ticksToComplete <= creep.ticksToLive)
     {
-      console.log(creep.name, "adding new owner", EntityType[owner[0]], ":", owner[1]);
       memory.owners.push(owner);
     }
     else
     {
       return false;
     }
-  });
+  }
 
   return true;
 }
@@ -194,6 +195,9 @@ function evaluateOwners(creep:Creep, owners:[EntityType, string][])
 {
   let ticksToComplete:number = 0;
   let invalidOwners:[EntityType, string][] = [];
+
+  if(_.isUndefined(creep.ticksToLive)) return;
+
   for(let creepOwner of owners)
   {
     var ownerTicks = getTicksToComplete(creep, creepOwner);
@@ -216,7 +220,7 @@ function evaluateOwners(creep:Creep, owners:[EntityType, string][])
       invalidOwners.push(creepOwner);
     }
   }
-  console.log(ticksToComplete, ":", creep.ticksToLive);
+  console.log(creep.name, ":", ticksToComplete, ":", creep.ticksToLive);
   deleteInvalidOwners(invalidOwners, owners);
 }
 
