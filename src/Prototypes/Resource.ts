@@ -1,6 +1,7 @@
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
+import { FindPath } from "Utils/PathFinding"
 import { CreepRequest, RequestPriority, RequestStatus } from "CreepRequest";
-import { ROLE_ROOMBA, Globals } from "Globals";
+import { ROLE_ROOMBA } from "Globals";
 import { EntityType } from "./EntityTypes";
 
 const _updateTickRate:number = 6;
@@ -136,35 +137,7 @@ export function resourcePrototype()
     {
       if(_.isUndefined(this.memory.pathToDump))
       {
-        this.memory.pathToDump = PathFinder.search(this.pos, this.room.resourceDumpPos,
-          {
-            plainCost: 2,
-            swampCost: 10,
-            roomCallback: function(roomName)
-            {
-              let costMatrix = new PathFinder.CostMatrix;
-
-              let structures:Structure[] = Globals.roomGlobals[roomName].Structures;
-              structures.forEach(function(structure)
-              {
-                // Set roads as a lower code than the plains
-                if(structure.structureType == STRUCTURE_ROAD)
-                {
-                  costMatrix.set(structure.pos.x, structure.pos.y, 1);
-                }
-                // Every other structure we need to set as unwalkable except containers
-                // and ramparts
-                else if(structure.structureType != STRUCTURE_CONTAINER &&
-                        structure.structureType != STRUCTURE_RAMPART)
-                {
-                  costMatrix.set(structure.pos.x, structure.pos.y, 0xff);
-                }
-              });
-
-              return costMatrix;
-            },
-          }
-        );
+        this.memory.pathToDump = FindPath(this.pos, this.room.resourceDumpPos);
       }
 
       return <PathFinderPath>this.memory.pathToDump;

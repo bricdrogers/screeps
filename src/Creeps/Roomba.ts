@@ -200,18 +200,17 @@ function evaluateOwners(creep:Creep, owners:[EntityType, string][])
     ticksToComplete += ownerTicks;
     if(ticksToComplete > creep.ticksToLive)
     {
+      // If this creep only has a single owner left, we will gather the resource until
+      // we die
+      if(owners.length - invalidOwners.length <= 1)
+      {
+        continue;
+      }
+
       var resource:Resource = Globals.roomGlobals[creep.room.name].Resources[creepOwner[1]];
       console.log(creep.name, "is overburdened and is releasing owner:", resource.id);
       resource.releaseCreepLease(creep.id);
-
-      // If this creep only has a single owner left, we will release the resource but keep it as
-      // a owner of this creep. This allows the resource to request another creep (since this creep)
-      // will not be able to transport all of the resources, but still work on transporting it until
-      // we die. Otherwise the creep will just sit idle until it does
-      if(owners.length - invalidOwners.length > 1)
-      {
-        invalidOwners.push(creepOwner);
-      }
+      invalidOwners.push(creepOwner);
     }
   }
   //console.log(creep.name, ":", ticksToComplete, ":", creep.ticksToLive);

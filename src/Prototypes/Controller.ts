@@ -2,6 +2,7 @@ import { CreepRequest, RequestPriority, RequestStatus } from "CreepRequest";
 import { EntityType } from "Prototypes/EntityTypes"
 import { ROLE_UPGRADER } from "Globals";
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
+import { FindPath } from "Utils/PathFinding"
 
 const _updateTickRate:number = 50;
 
@@ -104,6 +105,22 @@ export function controllerPrototype()
   });
 
   // ***************
+  // StructureController.pathToDump
+  // ***************
+  Object.defineProperty(StructureController.prototype, 'pathToDump',
+  {
+    get:function():PathFinderPath
+    {
+      if(_.isUndefined(this.memory.pathToDump))
+      {
+        this.memory.pathToDump = FindPath(this.pos, this.room.resourceDumpPos);
+      }
+
+      return <PathFinderPath>this.memory.pathToDump;
+    }
+  });
+
+  // ***************
   // StructureController.releaseCreepLease(string)
   // ***************
   StructureController.prototype.releaseCreepLease = function(creepId:string)
@@ -153,7 +170,9 @@ export function controllerPrototype()
 
     // The controller wants as many creeps as possible. Constantly request more creeps
     // at the lowest priority.
-    if(controller.level < 8 && controller.room.getResourceDumpEnergy() > 500)
+    if(controller.level < 8 &&
+       controller.room.requestEnergyCreep(EntityType.Controller) &&
+       controller.room.getResourceDumpEnergy() > 500)
     {
       var request:CreepRequest = new CreepRequest([WORK, WORK, MOVE, CARRY],
                                                   [MOVE, MOVE, CARRY, WORK, WORK],

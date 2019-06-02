@@ -69,6 +69,7 @@ export class OverseerVenture
             case EntityType.Controller:
             {
               room.controller.releaseCreepLease(name);
+              room.removeResourceCreep(name, Memory.creeps[name]);
               break;
             }
             default:

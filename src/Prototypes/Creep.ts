@@ -34,6 +34,18 @@ export function creepPrototype()
   });
 
   // ***************
+  // Creep.energyPerTick
+  // The energy per this this creep will consume from the resource dump. if this is undefined
+  // then this creep does not require energy consumption
+  // ***************
+  Object.defineProperty(Creep.prototype, 'energyPerTick',
+  {
+    get:function():number { return Memory.creeps[this.name].energyPerTick; },
+    set: function(value) { Memory.creeps[this.name].energyPerTick = value; }
+  });
+
+
+  // ***************
   // Creep.canFulfillRequest(CreepRequest)
   // ***************
   Creep.prototype.canFulfillRequest = function(request:CreepRequest):boolean
