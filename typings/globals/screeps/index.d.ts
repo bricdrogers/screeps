@@ -388,6 +388,11 @@ interface ConstructionSite extends RoomObject {
      * @returns Result Code: OK, ERR_NOT_OWNER
      */
     remove(): number;
+
+    // Prototypes
+    memory:any;
+    ticksSinceLastUpdate:number;
+    tick(room:Room);
 }
 interface ConstructionSiteConstructor extends _Constructor<ConstructionSite>, _ConstructorById<ConstructionSite> {
 }

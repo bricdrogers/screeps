@@ -29,6 +29,14 @@ export class OverseerVenture
     }
 
     // *****
+    // Update Construction Sites
+    // *****
+    for(let siteId in roomGlobals.ConstructionSites)
+    {
+      roomGlobals.ConstructionSites[siteId].tick(room);
+    }
+
+    // *****
     // Update Controller
     // *****
     room.controller.tick();

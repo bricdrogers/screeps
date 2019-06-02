@@ -12,7 +12,7 @@ export class RoomGlobalData
   public Sources:Source[] = [];
   public Spawns:Spawn[] = [];
   public Creeps:{[id:string]: Creep} = {};
-  public ConstructionSites:ConstructionSite[] = [];
+  public ConstructionSites:{[id:string]: ConstructionSite} = {}
   public Structures:Structure[] = [];
   public Resources:{[id:string]: Resource} = {};
 }

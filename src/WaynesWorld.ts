@@ -10,6 +10,7 @@ import { spawnPrototype } from "Prototypes/Spawns";
 import { roomPrototype } from "Prototypes/Room";
 import { resourcePrototype } from "Prototypes/Resource";
 import { controllerPrototype } from "Prototypes/Controller";
+import { constructionSitePrototype } from "Prototypes/ConstructionSite";
 
 export namespace WaynesWorld
 {
@@ -22,6 +23,7 @@ export namespace WaynesWorld
   roomPrototype();
   resourcePrototype();
   controllerPrototype();
+  constructionSitePrototype();
 
   // Screeps gameplay loop entry point
   export function WaynesPowerMinute()
@@ -39,8 +41,8 @@ export namespace WaynesWorld
       var roomHeapData:RoomGlobalData = Globals.roomGlobals[room.name];
       roomHeapData.Sources = room.find(FIND_SOURCES)
       roomHeapData.Spawns = room.find(FIND_MY_SPAWNS);
-      roomHeapData.ConstructionSites = room.find(FIND_CONSTRUCTION_SITES);
       roomHeapData.Structures = room.find(FIND_STRUCTURES);
+      roomHeapData.ConstructionSites = getConstructionSiteDict(room);
       roomHeapData.Resources = getResourceDict(room);
 
       var creeps:Creep[] = room.find(FIND_MY_CREEPS);
@@ -63,6 +65,16 @@ export namespace WaynesWorld
     }
 
     return ownedRooms;
+  }
+
+  function getConstructionSiteDict(room:Room):  {[id:string]: ConstructionSite}
+  {
+    var constructionSites:ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+
+    var updateSites:{[id:string]: ConstructionSite} = {};
+    constructionSites.forEach(function(site) { updateSites[site.id] = site; });
+
+    return updateSites;
   }
 
   function getResourceDict(room:Room): {[id:string]: Resource}
