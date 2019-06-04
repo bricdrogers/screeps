@@ -1,7 +1,8 @@
-import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER } from "Globals";
+import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER, ROLE_BUILDER } from "Globals";
 import { harvestTick } from "Creeps/Harvester";
 import { roombaTick, roombaTryAddOwner } from "Creeps/Roomba";
 import { upgraderTick } from "Creeps/Upgrader";
+import { builderTick, builderAddOwner } from "Creeps/Builder";
 import { CreepRequest } from "CreepRequest";
 
 export function creepPrototype()
@@ -56,6 +57,10 @@ export function creepPrototype()
       {
         return roombaTryAddOwner(this, request.Owners);
       }
+      case ROLE_BUILDER:
+      {
+        return builderAddOwner(this, request.Owners);
+      }
       default:
       {
         console.log("Cannot check request fulfillment. Unsupported Type", request.Role);
@@ -86,6 +91,11 @@ export function creepPrototype()
       case ROLE_UPGRADER:
       {
         upgraderTick(this);
+        break;
+      }
+      case ROLE_BUILDER:
+      {
+        builderTick(this);
         break;
       }
       default:

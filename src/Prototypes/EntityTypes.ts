@@ -4,4 +4,5 @@ export enum EntityType
   Source,
   Resource,
   Controller,
+  ConstructionSite,
 }

@@ -392,7 +392,11 @@ interface ConstructionSite extends RoomObject {
     // Prototypes
     memory:any;
     ticksSinceLastUpdate:number;
+    pathToDump:PathFinderPath;
+    creepId:string;
+    requestId:string;
     tick(room:Room);
+    releaseCreepLease(creepId:string);
 }
 interface ConstructionSiteConstructor extends _Constructor<ConstructionSite>, _ConstructorById<ConstructionSite> {
 }
