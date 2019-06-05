@@ -388,6 +388,15 @@ interface ConstructionSite extends RoomObject {
      * @returns Result Code: OK, ERR_NOT_OWNER
      */
     remove(): number;
+
+    // Prototypes
+    memory:any;
+    ticksSinceLastUpdate:number;
+    pathToDump:PathFinderPath;
+    creepId:string;
+    requestId:string;
+    tick(room:Room);
+    releaseCreepLease(creepId:string);
 }
 interface ConstructionSiteConstructor extends _Constructor<ConstructionSite>, _ConstructorById<ConstructionSite> {
 }
@@ -647,6 +656,7 @@ interface Creep extends RoomObject {
     bodyParts:string[];
     role:string;
     hasMultipleOwners:boolean;
+    energyPerTick:number;
     tick();
     canFulfillRequest(request:any): boolean;
 }
@@ -1945,10 +1955,14 @@ interface Room {
     resourceDump:[any, string];
     energyTickDelta:number;
     energyPerTickAvg:number;
+    controllerConsumers:{[id: string]: number};
     tick();
     getResourceDumpEnergy();
     getResourceFromDump(creep:Creep, resourceType:string);
     addResourceToDump(creep:Creep, resourceType:string);
+    addResourceCreep(creep:Creep);
+    removeResourceCreep(name:string, memory:any);
+    requestEnergyCreep(consumerType:any):boolean;
 }
 interface RoomConstructor {
     new (id: string): Room;
@@ -2253,6 +2267,7 @@ interface StructureController extends OwnedStructure {
     ticksSinceLastUpdate:number;
     requestId:string;
     creeps:string[];
+    pathToDump:PathFinderPath;
 }
 interface StructureControllerConstructor extends _Constructor<StructureController>, _ConstructorById<StructureController> {
 }

@@ -32,7 +32,7 @@ export class CreepSpawnQueue
       {
         if(creep.canFulfillRequest(request))
         {
-          console.log("Adding owner", request.Id, "to creep", creep.name);
+          console.log("Adding owner(s) to creep", creep.name, "from", EntityType[owner[0]]);
           request.Status = RequestStatus.Complete;
           request.creepName = creep.name;
           request.actualBodyParts = creep.bodyParts;

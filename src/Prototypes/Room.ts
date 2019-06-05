@@ -1,6 +1,7 @@
 import { EntityType } from "./EntityTypes";
 import { Globals } from "Globals";
-import { Queue } from "Utils/Queue"
+
+const _controllerEnergyPercent:number = 0.25;
 
 export function roomPrototype()
 {
@@ -78,6 +79,118 @@ export function roomPrototype()
       this.memory.resourceDump = value;
     }
   });
+
+  // ***************
+  // Room.controllerConsumers
+  // ***************
+  Object.defineProperty(Room.prototype, 'controllerConsumers',
+  {
+    get:function():{[id: string]: number}
+    {
+      if(_.isUndefined(this.memory.controllerConsumers))
+      {
+        this.memory.controllerConsumers = {};
+      }
+      return this.memory.controllerConsumers;
+    },
+    set: function(value)
+    {
+      this.memory.controllerConsumers = value;
+    }
+  });
+
+  // ***************
+  // Room.requestEnergyCreep()
+  // ***************
+  Room.prototype.requestEnergyCreep = function(consumerType:EntityType):boolean
+  {
+    var room:Room = this;
+    switch(consumerType)
+    {
+      case EntityType.Controller:
+      {
+        var totalControllerEPT = room.energyPerTickAvg * _controllerEnergyPercent;
+        var currentControllerEPT = 0;
+        for(let key in room.controllerConsumers)
+        {
+          currentControllerEPT += room.controllerConsumers[key];
+        }
+
+        // if the currentController energy per tick is less than the allocated energy
+        // per tick, we can spawn a new controller energy consumer.
+        console.log("Controller Request Energy Current:", currentControllerEPT, "Total", totalControllerEPT);
+        return currentControllerEPT < totalControllerEPT;
+      }
+      default:
+      {
+        console.log("cannot requestEnergyCreep unsupported entityType");
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  // ***************
+  // Room.addResourceCreep()
+  // ***************
+  Room.prototype.addResourceCreep = function(creep:Creep)
+  {
+    var room:Room = this;
+
+    // Get the creep owner entity type (I am going to assume that if the creep has multiple owners
+    // that they are the same type)
+    if(creep.memory.owners.length < 1)
+    {
+      console.log("Unable to add creep energy consumer. Creep does not have any owners");
+      return;
+    }
+
+    var consumerType:EntityType = creep.memory.owners[0][0];
+    switch(consumerType)
+    {
+      case EntityType.Controller:
+      {
+        room.controllerConsumers[creep.name] = creep.energyPerTick;
+        break;
+      }
+      default:
+      {
+        console.log("Unsupported consumer type for creep", creep.name);
+        return;
+      }
+    }
+  }
+
+  // ***************
+  // Room.removeResourceCreep()
+  // ***************
+  Room.prototype.removeResourceCreep = function(name:string, memory:any)
+  {
+    // Get the creep owner entity type (I am going to assume that if the creep has multiple owners
+    // that they are the same type)
+    if(memory.owners.length < 1)
+    {
+      console.log("Unable to remove creep energy consumer. Creep does not have any owners");
+      return;
+    }
+
+    var room:Room = this;
+    var consumerType:EntityType = memory.owners[0][0];
+    switch(consumerType)
+    {
+      case EntityType.Controller:
+      {
+        delete room.controllerConsumers[name];
+        break;
+      }
+      default:
+      {
+        console.log("Unsupported consumer type for creep", name);
+        return;
+      }
+    }
+  }
 
   // ***************
   // Room.getResourceDumpEnergy()
@@ -185,15 +298,10 @@ export function roomPrototype()
     // it is almost as accurate as moving average which is good enough here.
     room.energyPerTickAvg -= room.energyPerTickAvg / 200;
     room.energyPerTickAvg += room.energyTickDelta / 200;
-    console.log("Energy Income Per Tick", room.energyPerTickAvg);
 
-    // Maybe try to switch to a circle buffer
-    //     int j = (int) (counter % size);
-    // buffer[j] = mostrecentvalue;
-    // avg = (avg * size - buffer[j - 1 == -1 ? size - 1 : j - 1] + buffer[j]) / size;
-    // counter++;
-    // buffer[j - 1 == -1 ? size - 1 : j - 1] is the oldest value stored
-
-    room.energyTickDelta = 0;
+    if(Game.time % 50 == 0)
+    {
+      console.log("Energy Income Per Tick", room.energyPerTickAvg);
+    }
   }
 }

@@ -29,6 +29,14 @@ export class OverseerVenture
     }
 
     // *****
+    // Update Construction Sites
+    // *****
+    for(let siteId in roomGlobals.ConstructionSites)
+    {
+      roomGlobals.ConstructionSites[siteId].tick(room);
+    }
+
+    // *****
     // Update Controller
     // *****
     room.controller.tick();
@@ -69,6 +77,7 @@ export class OverseerVenture
             case EntityType.Controller:
             {
               room.controller.releaseCreepLease(name);
+              room.removeResourceCreep(name, Memory.creeps[name]);
               break;
             }
             default:

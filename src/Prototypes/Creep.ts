@@ -1,7 +1,8 @@
-import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER } from "Globals";
+import { ROLE_HARVESTER, ROLE_ROOMBA, ROLE_UPGRADER, ROLE_BUILDER } from "Globals";
 import { harvestTick } from "Creeps/Harvester";
 import { roombaTick, roombaTryAddOwner } from "Creeps/Roomba";
 import { upgraderTick } from "Creeps/Upgrader";
+import { builderTick, builderAddOwner } from "Creeps/Builder";
 import { CreepRequest } from "CreepRequest";
 
 export function creepPrototype()
@@ -34,6 +35,18 @@ export function creepPrototype()
   });
 
   // ***************
+  // Creep.energyPerTick
+  // The energy per this this creep will consume from the resource dump. if this is undefined
+  // then this creep does not require energy consumption
+  // ***************
+  Object.defineProperty(Creep.prototype, 'energyPerTick',
+  {
+    get:function():number { return Memory.creeps[this.name].energyPerTick; },
+    set: function(value) { Memory.creeps[this.name].energyPerTick = value; }
+  });
+
+
+  // ***************
   // Creep.canFulfillRequest(CreepRequest)
   // ***************
   Creep.prototype.canFulfillRequest = function(request:CreepRequest):boolean
@@ -43,6 +56,10 @@ export function creepPrototype()
       case ROLE_ROOMBA:
       {
         return roombaTryAddOwner(this, request.Owners);
+      }
+      case ROLE_BUILDER:
+      {
+        return builderAddOwner(this, request.Owners);
       }
       default:
       {
@@ -74,6 +91,11 @@ export function creepPrototype()
       case ROLE_UPGRADER:
       {
         upgraderTick(this);
+        break;
+      }
+      case ROLE_BUILDER:
+      {
+        builderTick(this);
         break;
       }
       default:
