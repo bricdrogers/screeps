@@ -55,7 +55,7 @@ export function roombaTick(creep:Creep)
   // Initialize memory
   if(_.isUndefined(memory.state))
   {
-    creep.say("💤" + RoombaState[RoombaState.Idle]);
+    creep.say("💤");
     memory.state = RoombaState.Idle;
   }
 
@@ -67,7 +67,7 @@ export function roombaTick(creep:Creep)
     {
       if(creep.carry.energy == 0)
       {
-        creep.say("⚗️" + RoombaState[RoombaState.Calculating]);
+        creep.say("⚗️");
         memory.state = RoombaState.Calculating;
         break;
       }
@@ -99,7 +99,7 @@ export function roombaTick(creep:Creep)
     {
       if(creep.carry.energy == creep.carryCapacity)
       {
-        creep.say("🙌" + RoombaState[RoombaState.Transferring]);
+        creep.say("🙌");
         creep.memory.state = RoombaState.Transferring;
         break;
       }
@@ -107,7 +107,7 @@ export function roombaTick(creep:Creep)
       var resourceId:string = memory.resourceId;
       if(_.isUndefined(resourceId))
       {
-        creep.say("💤" + RoombaState[RoombaState.Idle]);
+        creep.say("💤");
         memory.state = RoombaState.Idle;
         break;
       }
@@ -115,7 +115,7 @@ export function roombaTick(creep:Creep)
       var resource:Resource =  roomGlobals.Resources[resourceId];
       if(_.isUndefined(resource) || resource == null)
       {
-        creep.say("💤" + RoombaState[RoombaState.Idle]);
+        creep.say("💤");
         memory.state = RoombaState.Idle;
         break;
       }
@@ -131,7 +131,7 @@ export function roombaTick(creep:Creep)
     {
       if(owners.length > 0)
       {
-        creep.say("⚗️" + RoombaState[RoombaState.Calculating]);
+        creep.say("⚗️");
         memory.state = RoombaState.Calculating;
       }
 
@@ -140,8 +140,9 @@ export function roombaTick(creep:Creep)
     case RoombaState.Calculating:
     {
       // Need to evaluate owners to remove the ones we will not be able to get to
-      // and the dead ones
-      evaluateOwners(creep, memory.owners);
+      // and the dead ones. If we fail to evaluate the owners, we need to wait and try
+      // again next tick.
+      if(!evaluateOwners(creep, memory.owners)) break;
 
       // Prioritize owners
       var priorityResource:Resource = null;
@@ -162,14 +163,14 @@ export function roombaTick(creep:Creep)
 
       if(priorityResource != null)
       {
-        creep.say("🌾" + RoombaState[RoombaState.Gathering]);
+        creep.say("🌾");
         memory.state = RoombaState.Gathering;
         memory.resourceId = priorityResource.id;
       }
       else
       {
         // Unable to find a priority resource go back to idle
-        creep.say("💤" + RoombaState[RoombaState.Idle]);
+        creep.say("💤");
         memory.state = RoombaState.Idle;
       }
 
@@ -178,12 +179,12 @@ export function roombaTick(creep:Creep)
   }
 }
 
-function evaluateOwners(creep:Creep, owners:[EntityType, string][])
+function evaluateOwners(creep:Creep, owners:[EntityType, string][]):boolean
 {
   let ticksToComplete:number = 0;
   let invalidOwners:[EntityType, string][] = [];
 
-  if(_.isUndefined(creep.ticksToLive)) return;
+  if(_.isUndefined(creep.ticksToLive)) return false;
 
   for(let creepOwner of owners)
   {
@@ -216,6 +217,7 @@ function evaluateOwners(creep:Creep, owners:[EntityType, string][])
   }
   //console.log(creep.name, ":", ticksToComplete, ":", creep.ticksToLive);
   deleteInvalidOwners(invalidOwners, owners);
+  return true;
 }
 
 function getTicksToComplete(creep:Creep, owner:[EntityType, string]):number
