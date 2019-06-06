@@ -99,6 +99,12 @@ export function roomPrototype()
     }
   });
 
+  Room.prototype.reserveStoredEnergy = function()
+  {
+
+  }
+
+
   // ***************
   // Room.requestEnergyCreep()
   // ***************

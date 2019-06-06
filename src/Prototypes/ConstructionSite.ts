@@ -1,8 +1,8 @@
-import { FindPath } from "Utils/PathFinding"
+import { FindPath, GetLifetimeEnergy } from "Utils/PathFinding"
 import { CreepSpawnQueue } from "Utils/CreepSpawnQueue"
-import { CreepRequest, RequestPriority, RequestStatus } from "CreepRequest";
-import { ROLE_BUILDER } from "Globals";
+import { CreepRequest, RequestStatus, RequestPriority } from "CreepRequest";
 import { EntityType } from "./EntityTypes";
+import { ROLE_BUILDER } from "Globals";
 
 const _updateTickRate:number = 26;
 
@@ -170,16 +170,40 @@ export function constructionSitePrototype()
     {
       //Builds a structure for 5 energy units per tick.
       constructionSite.requestId =
-            CreepSpawnQueue.CreateSharedRequest([WORK, WORK, MOVE, CARRY],
-                                                [MOVE, MOVE, CARRY, WORK, WORK],
+            CreepSpawnQueue.CreateSharedRequest([],
+                                                evaluateRequestParts(this),
                                                 RequestPriority.Discretionary,
                                                 ROLE_BUILDER,
                                                 owner,
-                                                true,
+                                                false,
                                                 room);
     }
-
   }
+}
+
+function evaluateRequestParts(site:ConstructionSite):string[]
+{
+  // After some testing, this patten seems pretty optimal
+  var partPattern:string[] = [CARRY, MOVE, WORK, MOVE, CARRY];
+  var currentParts:string[] = [WORK, MOVE, CARRY];
+  var stdEnergy = GetLifetimeEnergy(site.pathToDump.cost, 5, [WORK, MOVE, CARRY]);
+
+  var patternIndex = 0;
+  var buildEnergyPerLifespan:number = stdEnergy;
+  while(site.progressTotal - buildEnergyPerLifespan > 0)
+  {
+    var part:string = partPattern[patternIndex];
+    currentParts.push(part);
+    buildEnergyPerLifespan = GetLifetimeEnergy(site.pathToDump.cost, 5, currentParts);
+
+    ++patternIndex;
+    if(patternIndex >= partPattern.length)
+    {
+      patternIndex = 0;
+    }
+  }
+
+  return currentParts;
 }
 
 function checkUndefinedMemory(site:ConstructionSite)

@@ -154,7 +154,7 @@ export function controllerPrototype()
 
       if(request.Status == RequestStatus.Complete)
       {
-        controller.creeps.push(request.Owners[0][1]);
+        controller.creeps.push(request.creepName);
 
         CreepSpawnQueue.RemoveCreepRequest(controller.room, requestId, owner);
         controller.requestId = null;

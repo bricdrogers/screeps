@@ -143,7 +143,7 @@ function getRequiredEnergyPerTick(creep:Creep):number
 
     // Now we need to figure out how many ticks it will take the creep to use all of the energy.
     // A creep will upgrade a controller 1 energy per WORK per tick
-    var ticksToUpgrade:number = workParts * creep.carryCapacity;
+    var ticksToUpgrade:number = creep.carryCapacity / (1 * workParts);
 
     // Now we know the total amount of ticket this upgrader will take to pull resource from the dump,
     // travel to the controller, upgrade the controller, then move back to the dump. Based on this we can

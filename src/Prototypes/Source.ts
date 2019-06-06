@@ -193,7 +193,7 @@ export function sourcePrototype()
     else
     {
       // Resolve constructionSite id's if needed
-      if(!_.isUndefined(this.memory.needsNextTickResolve)) { resolveContainerId(this, roomGlobals.ConstructionSites); }
+      if(!_.isUndefined(this.memory.needsNextTickResolve)) { resolveContainerId(this); }
     }
 
     var requestId:string = this.requestId;
@@ -267,7 +267,7 @@ export function sourcePrototype()
     }
   }
 
-function resolveContainerId(source:Source, constructionSites:ConstructionSite[])
+function resolveContainerId(source:Source)
 {
   var containerIdResolve:any = source.harvestSlots.find(function(value:any)
   {
@@ -276,17 +276,21 @@ function resolveContainerId(source:Source, constructionSites:ConstructionSite[])
 
   if(!_.isUndefined(containerIdResolve))
   {
+    var constructionSites:{[id:string]: ConstructionSite} = Globals.roomGlobals[source.room.name].ConstructionSites;
+
     // check the construction sites
-    var containerSite:ConstructionSite = constructionSites.find(function(site:ConstructionSite)
+    var containerSite:ConstructionSite = undefined;
+    for(let siteId in constructionSites)
     {
+      var site:ConstructionSite = constructionSites[siteId];
       if(site.pos.x == containerIdResolve.x &&
          site.pos.y == containerIdResolve.y &&
          site.structureType == STRUCTURE_CONTAINER)
-      {
-        return true;
-      }
-      return false;
-    });
+        {
+          containerSite = site;
+          break;
+        }
+    }
 
     if(!_.isUndefined(containerSite))
     {

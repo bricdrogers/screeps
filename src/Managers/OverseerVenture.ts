@@ -80,6 +80,12 @@ export class OverseerVenture
               room.removeResourceCreep(name, Memory.creeps[name]);
               break;
             }
+            case EntityType.ConstructionSite:
+            {
+              var site:ConstructionSite = roomGlobals.ConstructionSites[owner[1]];
+              site.releaseCreepLease(name);
+              break;
+            }
             default:
             {
               console.log("Unknown entity type.", owner[0], "cannot release creep lease.");
