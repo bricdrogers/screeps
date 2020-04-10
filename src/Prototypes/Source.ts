@@ -306,7 +306,7 @@ function resolveContainerId(source:Source)
   delete source.memory.needsNextTickResolve;
 }
 
-function createContainer(source:Source, room:Room, spawns:Spawn[])
+function createContainer(source:Source, room:Room, spawns:StructureSpawn[])
 {
   // The best container position is the closest spot to the spawn
   var pathToSource:PathFinderPath = PathFinder.search(spawns[0].pos, {pos: source.pos, range:1});

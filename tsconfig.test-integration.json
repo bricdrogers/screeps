@@ -2,14 +2,15 @@
   "compilerOptions": {
     "module": "esnext",
     "lib": ["esnext"],
-    "target": "es2017",
+    "target": "es5",
     "moduleResolution": "Node",
     "outDir": "dist",
     "baseUrl": "src/",
     "sourceMap": true,
-    "strict": false,
+    "strict": true,
     "experimentalDecorators": true,
     "noImplicitReturns": true,
+    "noImplicitAny": false,
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false
   },

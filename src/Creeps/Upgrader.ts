@@ -115,7 +115,7 @@ export function upgraderTick(creep:Creep)
 
 function getRequiredEnergyPerTick(creep:Creep):number
 {
-    var controller:Controller = creep.room.controller;
+    var controller:StructureController = creep.room.controller;
     if(_.isUndefined(controller)) return undefined;
 
     var moveParts:number = 0;
